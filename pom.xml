@@ -14,7 +14,7 @@
     </modules>
 
     <properties>
-        <maven.compiler.release>23</maven.compiler.release>
+        <maven.compiler.release>17</maven.compiler.release>
 
         <!-- Plugin versions (keep explicit for reproducibility) -->
         <maven.compiler.plugin.version>3.14.1</maven.compiler.plugin.version>
@@ -75,28 +75,28 @@
                     <version>${maven.shade.plugin.version}</version>
                 </plugin>
 
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-enforcer-plugin</artifactId>
-                    <version>${maven.enforcer.plugin.version}</version>
-                    <executions>
-                        <execution>
-                            <id>enforce-java</id>
-                            <goals>
-                                <goal>enforce</goal>
-                            </goals>
-                            <configuration>
-                                <rules>
-                                    <!-- Require Java 23.x (blocks 22, blocks 24+) -->
-                                    <requireJavaVersion>
-                                        <version>[23,24)</version>
-                                    </requireJavaVersion>
-                                </rules>
-                                <fail>true</fail>
-                            </configuration>
-                        </execution>
-                    </executions>
-                </plugin>
+<!--                <plugin>-->
+<!--                    <groupId>org.apache.maven.plugins</groupId>-->
+<!--                    <artifactId>maven-enforcer-plugin</artifactId>-->
+<!--                    <version>${maven.enforcer.plugin.version}</version>-->
+<!--                    <executions>-->
+<!--                        <execution>-->
+<!--                            <id>enforce-java</id>-->
+<!--                            <goals>-->
+<!--                                <goal>enforce</goal>-->
+<!--                            </goals>-->
+<!--                            <configuration>-->
+<!--                                <rules>-->
+<!--                                    &lt;!&ndash; Require Java 23.x (blocks 22, blocks 24+) &ndash;&gt;-->
+<!--                                    <requireJavaVersion>-->
+<!--                                        <version>[23,24)</version>-->
+<!--                                    </requireJavaVersion>-->
+<!--                                </rules>-->
+<!--                                <fail>true</fail>-->
+<!--                            </configuration>-->
+<!--                        </execution>-->
+<!--                    </executions>-->
+<!--                </plugin>-->
             </plugins>
         </pluginManagement>
     </build>
