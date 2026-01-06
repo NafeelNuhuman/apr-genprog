@@ -1,0 +1,19 @@
+{
+  "file": "Program.java",
+  "statements": [
+    { "line": 12, "weight": 0.1 },
+    { "line": 13, "weight": 0.0 },
+    { "line": 16, "weight": 0.1 },
+    { "line": 17, "weight": 0.1 },
+
+    { "line": 19, "weight": 1.0 },
+    { "line": 20, "weight": 1.0 },
+    { "line": 21, "weight": 1.0 },
+    { "line": 22, "weight": 0.0 },
+    { "line": 23, "weight": 0.0 },
+    { "line": 25, "weight": 0.0 },
+    { "line": 26, "weight": 0.0 },
+
+    { "line": 29, "weight": 0.0 }
+  ]
+}

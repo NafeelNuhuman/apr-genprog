@@ -1,4 +1,4 @@
-# Bench Mark 1 - Clamp
+# Bench Mark 1 - Clamp (low high range return bug)
 
 ## What it does
 `Program.clamp(int x, int low, int high)` clamps `x` into the inclusive range `[low, high]`.

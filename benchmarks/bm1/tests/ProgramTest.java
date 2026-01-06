@@ -16,7 +16,7 @@ public class ProgramTest {
 
     @Test
     void aboveUpperBound_returnsHigh() {
-        // This is the one that should FAIL on buggy and PASS on fixed.
+        // FAIL on buggy and PASS on fixed.
         assertEquals(10, Program.clamp(99, 0, 10));
     }
 }
