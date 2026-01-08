@@ -75,7 +75,7 @@ public class BenchmarkLoader {
         config.setFixedProgram(Files.readString(fixedFile, StandardCharsets.UTF_8));
         config.setTestSuitePath(testSuiteFile);
         config.setTestSuite(Files.readString(testSuiteFile, StandardCharsets.UTF_8));
-        config.setFaultLocFile(faultLocFile);
+        config.setFaultLocFilePath(faultLocFile);
 
         return config;
     }

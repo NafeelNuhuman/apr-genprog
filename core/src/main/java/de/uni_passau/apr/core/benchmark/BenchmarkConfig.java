@@ -12,15 +12,15 @@ public class BenchmarkConfig {
     private String buggyProgram;
     private String fixedProgram;
     private String testSuite;
-    private Path faultLocFile;
+    private Path faultLocFilePath;
 
-    public BenchmarkConfig(String name, Path benchmarkRoot, String buggyProgram, String fixedProgram, String testSuite, Path faultLocFile) {
+    public BenchmarkConfig(String name, Path benchmarkRoot, String buggyProgram, String fixedProgram, String testSuite, Path faultLocFilePath) {
         this.name = name;
         this.benchmarkRoot = benchmarkRoot;
         this.buggyProgram = buggyProgram;
         this.fixedProgram = fixedProgram;
         this.testSuite = testSuite;
-        this.faultLocFile = faultLocFile;
+        this.faultLocFilePath = faultLocFilePath;
     }
 
     public BenchmarkConfig() {
@@ -90,11 +90,11 @@ public class BenchmarkConfig {
         this.testSuite = testSuite;
     }
 
-    public Path getFaultLocFile() {
-        return faultLocFile;
+    public Path getFaultLocFilePath() {
+        return faultLocFilePath;
     }
 
-    public void setFaultLocFile(Path faultLocFile) {
-        this.faultLocFile = faultLocFile;
+    public void setFaultLocFilePath(Path faultLocFilePath) {
+        this.faultLocFilePath = faultLocFilePath;
     }
 }

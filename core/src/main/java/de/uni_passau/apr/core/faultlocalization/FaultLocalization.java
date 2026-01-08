@@ -5,14 +5,14 @@ import java.util.List;
 public class FaultLocalization {
 
     private String file;
-    private List<WeightedLocation> locations;
+    private List<WeightedLocation> statements;
 
     public FaultLocalization() {
     }
 
-    public FaultLocalization(String file, List<WeightedLocation> locations) {
+    public FaultLocalization(String file, List<WeightedLocation> statements) {
         this.file = file;
-        this.locations = locations;
+        this.statements = statements;
     }
 
     public String getFile() {
@@ -23,11 +23,11 @@ public class FaultLocalization {
         this.file = file;
     }
 
-    public List<WeightedLocation> getLocations() {
-        return locations;
+    public List<WeightedLocation> getStatements() {
+        return statements;
     }
 
-    public void setLocations(List<WeightedLocation> locations) {
-        this.locations = locations;
+    public void setStatements(List<WeightedLocation> statements) {
+        this.statements = statements;
     }
 }
