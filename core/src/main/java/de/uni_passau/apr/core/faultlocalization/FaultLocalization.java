@@ -4,8 +4,8 @@ import java.util.List;
 
 public class FaultLocalization {
 
-    String file;
-    List<WeightedLocation> locations;
+    private String file;
+    private List<WeightedLocation> locations;
 
     public FaultLocalization() {
     }

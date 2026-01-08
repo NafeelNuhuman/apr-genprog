@@ -2,23 +2,23 @@ package de.uni_passau.apr.core.faultlocalization;
 
 public class WeightedLocation {
 
-    int lineNumber;
-    double weight;
+    private int line;
+    private double weight;
 
     public WeightedLocation() {
     }
 
     public WeightedLocation(int lineNumber, double weight) {
-        this.lineNumber = lineNumber;
+        this.line = lineNumber;
         this.weight = weight;
     }
 
-    public int getLineNumber() {
-        return lineNumber;
+    public int getLine() {
+        return line;
     }
 
-    public void setLineNumber(int lineNumber) {
-        this.lineNumber = lineNumber;
+    public void setLine(int line) {
+        this.line = line;
     }
 
     public double getWeight() {
