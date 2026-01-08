@@ -79,4 +79,13 @@ public class BenchmarkLoader {
 
         return config;
     }
+
+    public java.util.List<String> listAvailableBenchmarks() throws IOException {
+        try (var stream = Files.list(benchmarkRoot)) {
+            return stream
+                    .filter(Files::isDirectory)
+                    .map(path -> path.getFileName().toString())
+                    .toList();
+        }
+    }
 }
