@@ -1,6 +1,9 @@
+package de.uni_passau.apr.core.patch;
+
 import com.github.javaparser.*;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.stmt.Statement;
+import de.uni_passau.apr.core.patch.models.StatementId;
 
 import java.nio.file.Path;
 import java.util.*;
@@ -20,7 +23,7 @@ public final class StatementCollector {
         this.allIds = allIds;
     }
 
-    public static StatementIndex fromFile(Path javaFile) throws Exception {
+    public static StatementCollector fromFile(Path javaFile) throws Exception {
         ParserConfiguration cfg = new ParserConfiguration();
         JavaParser parser = new JavaParser(cfg);
 

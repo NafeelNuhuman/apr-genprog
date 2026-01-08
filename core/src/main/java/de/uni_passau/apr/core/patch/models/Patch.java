@@ -1,4 +1,4 @@
-package de.uni_passau.apr.core.patch;
+package de.uni_passau.apr.core.patch.models;
 
 import java.util.List;
 
