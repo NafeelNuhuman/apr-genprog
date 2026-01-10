@@ -14,7 +14,7 @@ public class Program {
         }
 
         int i = 0;
-        int j = s.length();
+        int j = s.length(); //BUGGY
 
         while (i < j) {
             char left = Character.toLowerCase(s.charAt(i));

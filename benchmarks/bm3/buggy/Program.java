@@ -20,6 +20,6 @@ public class Program {
         for (int v : a) {
             sum += v;
         }
-        return sum / a.length;
+        return sum / a.length; //BUGGY
     }
 }

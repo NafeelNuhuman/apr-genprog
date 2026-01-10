@@ -1,7 +1,7 @@
 package de.uni_passau.apr.core.faultlocalization;
 
 import de.uni_passau.apr.core.benchmark.BenchmarkConfig;
-import de.uni_passau.apr.core.patch.StatementCollector;
+import de.uni_passau.apr.core.patch.operators.StatementCollector;
 import de.uni_passau.apr.core.patch.models.StatementId;
 
 import java.io.IOException;
@@ -74,6 +74,7 @@ public final class FaultLocGuidedSampler {
         }
     }
 
+    /* returns one statement to edit, chosen randomly but biased by fault localization weights.*/
     public StatementId sampleTarget() {
         double r = rng.nextDouble() * total;
         int idx = Collections.binarySearch(cumulative, r);
