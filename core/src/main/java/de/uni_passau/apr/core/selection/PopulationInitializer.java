@@ -1,4 +1,4 @@
-package de.uni_passau.apr.core.patch.operators;
+package de.uni_passau.apr.core.selection;
 
 import de.uni_passau.apr.core.patch.operators.StatementCollector;
 import de.uni_passau.apr.core.patch.models.*;
@@ -43,7 +43,7 @@ public final class PopulationInitializer {
 
     public List<Patch> initialize() {
         List<Patch> pop = new ArrayList<>(populationSize);
-        Set<String> seen = new HashSet<>(); 
+        Set<String> seen = new HashSet<>();
 
         int guard = 0;
         while (pop.size() < populationSize) {
