@@ -1,5 +1,7 @@
 package de.uni_passau.apr.core.testrunner;
 
+import de.uni_passau.apr.core.utils.SurefireReportParser;
+import de.uni_passau.apr.core.utils.TestReportSummary;
 import java.nio.file.Files;
 import java.time.Duration;
 
@@ -91,8 +93,21 @@ public class MavenTestRunner implements TestRunner {
             result.setExitCode(exitCode);
             result.setOutput(output.toString());
             result.setTimedOut(false);
-            // determine if all tests passed
             result.setAllPassed(exitCode == 0);
+            // parse surefire reports
+            TestReportSummary summary = new TestReportSummary();
+            try {
+                summary = SurefireReportParser.parse(
+                        workspaceDir.resolve("target").resolve("surefire-reports"));
+            } catch (java.io.IOException ioe) {
+                result.setOutput(result.getOutput() + "\n\nIOException during surefire report parsing: " + ioe.getMessage());
+            }
+            result.setTestsRun(summary.getTestsRun());
+            result.setFailures(summary.getFailures());
+            result.setErrors(summary.getErrors());
+            result.setSkipped(summary.getSkipped());
+            result.setFailedTests(summary.getFailedTestsIDs());
+            result.setAllPassed(exitCode == 0 && summary.getFailures() == 0 && summary.getErrors() == 0);
         } catch (java.io.IOException ioe) {
             result.setExitCode(127);
             result.setOutput("IOException during test execution: " + ioe.getMessage());
