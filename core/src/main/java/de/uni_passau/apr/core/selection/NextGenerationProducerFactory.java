@@ -31,6 +31,7 @@ public final class NextGenerationProducerFactory {
         // Wrap it in ParentSelector
         ParentSelector<Individual> selector = pop -> ts.selectOne(pop);
 
+        // TO-DO set variables
         // Create NextGenerationProducer
         NextGenerationProducer<Individual> producer = new NextGenerationProducer<>(
                 40,     // population size
