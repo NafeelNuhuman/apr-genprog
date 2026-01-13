@@ -1,14 +1,11 @@
 package de.uni_passau.apr.core.patch.operators;
 
-import com.github.javaparser.JavaParser;
-import com.github.javaparser.ParserConfiguration;
-import com.github.javaparser.ParseResult;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.stmt.Statement;
 import com.github.javaparser.printer.lexicalpreservation.LexicalPreservingPrinter;
-import com.github.javaparser.Range;
 
 import de.uni_passau.apr.core.patch.models.*;
+import de.uni_passau.apr.core.patch.utils.PatchUtils;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -29,7 +26,7 @@ public final class PatchApplier {
         Objects.requireNonNull(javaFile, "javaFile");
         Objects.requireNonNull(patch, "patch");
 
-        CompilationUnit cu = parse(javaFile);
+        CompilationUnit cu = PatchUtils.parse(javaFile);
         LexicalPreservingPrinter.setup(cu);
 
         // Apply bottom up so earlier edits don't shift ranges for later ones
@@ -39,14 +36,14 @@ public final class PatchApplier {
 
         for (EditOp op : edits) {
             if (op instanceof DeleteOp del) {
-                Statement target = findStatementById(cu, del.target());
+                Statement target = PatchUtils.findStatementById(cu, del.target());
                 target.remove();
             } else if (op instanceof ReplaceOp rep) {
                 if (rep.target().equals(rep.donor())) {
                     throw new IllegalArgumentException("ReplaceOp donor equals target: " + rep.target());
                 }
-                Statement target = findStatementById(cu, rep.target());
-                Statement donor = findStatementById(cu, rep.donor());
+                Statement target = PatchUtils.findStatementById(cu, rep.target());
+                Statement donor = PatchUtils.findStatementById(cu, rep.donor());
 
                 // safety - (already enforcing same statements but tbs)
                 if (!target.getClass().equals(donor.getClass())) continue;
@@ -74,40 +71,9 @@ public final class PatchApplier {
         Files.writeString(outputFile, modified, StandardCharsets.UTF_8);
     }
 
-    // ------------------- helpers ----------------
-
     private static int targetBeginLine(EditOp op) {
         StatementId id = (op instanceof DeleteOp d) ? d.target() : ((ReplaceOp) op).target();
         return id.beginLine();
     }
 
-    private static CompilationUnit parse(Path javaFile) throws IOException {
-        ParserConfiguration cfg = new ParserConfiguration();
-        JavaParser parser = new JavaParser(cfg);
-
-        String src = Files.readString(javaFile, StandardCharsets.UTF_8);
-        ParseResult<CompilationUnit> result = parser.parse(src);
-
-        return result.getResult()
-                .orElseThrow(() -> new IllegalArgumentException("Parse failed: " + result.getProblems()));
-    }
-
-    /**
-     * Finds a Statement node whose Range exactly matches the StatementId.
-     * Throws if not found.
-     */
-    private static Statement findStatementById(CompilationUnit cu, StatementId id) {
-        for (Statement stmt : cu.findAll(Statement.class)) {
-            if (stmt.getRange().isEmpty()) continue;
-            Range r = stmt.getRange().get();
-            StatementId stmtId = new StatementId(
-                    r.begin.line, r.begin.column,
-                    r.end.line, r.end.column
-            );
-            if (stmtId.equals(id)) {
-                return stmt;
-            }
-        }
-        throw new IllegalArgumentException("Statement not found for id: " + id);
-    }
 }
