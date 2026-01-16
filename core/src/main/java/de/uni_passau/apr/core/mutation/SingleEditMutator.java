@@ -31,7 +31,7 @@ public final class SingleEditMutator {
         this.sameTypeDonorOnly = sameTypeDonorOnly;
     }
 
-    /** Apply mutation with probability p; otherwise return the original patch unchanged. */
+    // Apply mutation with probability p; otherwise return the original patch unchanged.
     public Patch maybeMutate(Patch patch) {
         Objects.requireNonNull(patch);
         if (rng.nextDouble() >= mutationProbability) {
@@ -40,7 +40,7 @@ public final class SingleEditMutator {
         return mutateOnce(patch);
     }
 
-    /** Always performs exactly one mutation step but try a different stratergy out of 3 */
+    // Always exactly one mutation step but try a different stratergy out of 3
     public Patch mutateOnce(Patch patch) {
         EditOp op = singleOp(patch);
 
@@ -63,7 +63,7 @@ public final class SingleEditMutator {
         if (op instanceof DeleteOp) {
             return new Patch(List.of(new DeleteOp(newTarget)));
         }
-        if (op instanceof ReplaceOp rep) {
+        if (op instanceof ReplaceOp) {
             StatementId donor = pickDonorForTarget(newTarget);
             if (donor == null) return null;
             return new Patch(List.of(new ReplaceOp(newTarget, donor)));
@@ -76,11 +76,12 @@ public final class SingleEditMutator {
             StatementId target = rep.target();
             StatementId newDonor = pickDonorForTarget(target);
             if (newDonor == null) return null;
-            // avoid self-replace if possible
+            // avoid self replace if possible
             if (newDonor.equals(target)) return null;
             return new Patch(List.of(new ReplaceOp(target, newDonor)));
         }
-        // If it's delete, "changeDonor" doesn't apply; treat as no op (return null to retry)
+        // If it's delete, changeDonor doesn't apply, treat it as no op
+        // (return null to retry)
         return null;
     }
 
@@ -100,7 +101,8 @@ public final class SingleEditMutator {
 
     /**
      * Picks a donor statement.
-     * If sameTypeDonorOnly=true, donor must be same Statement subclass as target.
+     * If sameTypeDonorOnly=true,
+     * donor must be same Statement subclass as target.
      */
     private StatementId pickDonorForTarget(StatementId target) {
         var all = collector.allStatementIds();
@@ -110,7 +112,7 @@ public final class SingleEditMutator {
             return all.get(rng.nextInt(all.size()));
         }
 
-        // same-type donor selection (improves compile rate)
+        // same type donor selection (improves compile rate)
         Class<?> targetType = collector.getStmt(target).getClass();
         // try a few random donors first (cuz cheap)
         for (int i = 0; i < 30; i++) {
@@ -131,7 +133,7 @@ public final class SingleEditMutator {
     private static EditOp singleOp(Patch patch) {
         List<EditOp> edits = patch.edits();
         if (edits == null || edits.size() != 1) {
-            throw new IllegalArgumentException("Expected single-edit patch, got: " + (edits == null ? 0 : edits.size()));
+            throw new IllegalArgumentException("Expected single edit patch, got: " + (edits == null ? 0 : edits.size()));
         }
         return edits.get(0);
     }

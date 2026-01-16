@@ -16,7 +16,7 @@ public final class FitnessEvaluator {
     private final double wPosT;
     private final double wNegT;
 
-    public FitnessEvaluator(Evaluator evaluator, double wPosT, double wNegT) {
+    public FitnessEvaluator(double wPosT, double wNegT) {
         if (wNegT <= 0) throw new IllegalArgumentException("wNegT must be > 0");
         this.wPosT = wPosT;
         this.wNegT = wNegT;

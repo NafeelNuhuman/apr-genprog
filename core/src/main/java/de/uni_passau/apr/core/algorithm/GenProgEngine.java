@@ -165,14 +165,6 @@ public final class GenProgEngine implements RepairAlgorithm {
         return cand.fitness() > bestSoFar.fitness() ? cand : bestSoFar;
     }
 
-    /**
-     * returns the full EvaluatedCandidate with highest fitness.
-     */
-    private static EvaluatedCandidate bestCandidateOf(List<EvaluatedCandidate> pop) {
-        return pop.stream()
-                .max(Comparator.comparingDouble(EvaluatedCandidate::fitness))
-                .orElseThrow(() -> new IllegalArgumentException("empty population"));
-    }
 
     /**
      * Returns true if the candidate is

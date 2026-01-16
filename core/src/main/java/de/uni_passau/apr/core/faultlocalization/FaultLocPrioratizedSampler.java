@@ -1,13 +1,10 @@
 package de.uni_passau.apr.core.faultlocalization;
 
-import de.uni_passau.apr.core.benchmark.BenchmarkConfig;
 import de.uni_passau.apr.core.patch.operators.StatementCollector;
 import de.uni_passau.apr.core.patch.models.StatementId;
 
-import java.io.IOException;
 import java.util.*;
 
-//Todo change name
 public final class FaultLocPrioratizedSampler {
 
     private final StatementCollector collector;
@@ -98,7 +95,7 @@ public final class FaultLocPrioratizedSampler {
         throw new IllegalStateException("No statements available to map to faultloc line " + line);
     }
 
-    /* returns one statement to edit, chosen randomly but biased by fl weights.*/
+    // returns one statement to edit, chosen randomly but biased by fl weights
     public StatementId getTarget() {
         double r = rand.nextDouble() * total;
         int idx = Collections.binarySearch(cumulative, r);
