@@ -7,10 +7,11 @@ import de.uni_passau.apr.core.patch.models.StatementId;
 import java.io.IOException;
 import java.util.*;
 
-public final class FaultLocGuidedSampler {
+//Todo change name
+public final class FaultLocPrioratizedSampler {
 
     private final StatementCollector collector;
-    private final Random rng;
+    private final Random rand;
 
     private final List<StatementId> ids = new ArrayList<>();
     private final List<Double> cumulative = new ArrayList<>();
@@ -18,25 +19,17 @@ public final class FaultLocGuidedSampler {
 
     private final NavigableMap<Integer, List<StatementId>> byBeginLine = new TreeMap<>();
 
-    public FaultLocGuidedSampler(BenchmarkConfig cfg,
-                                 FaultLocalizationProvider provider,
-                                 StatementCollector collector,
-                                 Random rng) {
+    public FaultLocPrioratizedSampler(FaultLocalization fl,
+                                      StatementCollector collector,
+                                      Random rand) {
         this.collector = Objects.requireNonNull(collector);
-        this.rng = Objects.requireNonNull(rng);
+        this.rand = Objects.requireNonNull(rand);
 
         // index for nearest-next/prev lookup
         for (StatementId id : collector.allStatementIds()) {
             byBeginLine.computeIfAbsent(id.beginLine(), k -> new ArrayList<>()).add(id);
         }
 
-        // load + build once
-        FaultLocalization fl = null;
-        try {
-            fl = Objects.requireNonNull(provider).loadFor(cfg);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
         buildCandidates(fl);
     }
 
@@ -70,20 +63,13 @@ public final class FaultLocGuidedSampler {
         }
 
         if (ids.isEmpty()) {
-            throw new IllegalStateException("Fault localization lines did not map to any statements: " + fl.getFile());
+            throw new IllegalStateException("Fault localization lines didnt map to any statements: " + fl.getFile());
         }
     }
 
-    /* returns one statement to edit, chosen randomly but biased by fault localization weights.*/
-    public StatementId sampleTarget() {
-        double r = rng.nextDouble() * total;
-        int idx = Collections.binarySearch(cumulative, r);
-        if (idx < 0) idx = -idx - 1;
-        return ids.get(idx);
-    }
-
     private StatementId mapLineToStatement(int line) {
-        // 1 choose best statement that contains the line (*if needed can make this more smarter)
+        // 1 choose best statement that contains the line
+        // TODO (*if needed can make this more smarter)
         StatementId best = null;
         int bestSpan = Integer.MAX_VALUE;
 
@@ -109,6 +95,15 @@ public final class FaultLocGuidedSampler {
             return list.get(list.size() - 1);
         }
 
-        throw new IllegalStateException("No statements available to map faultloc line " + line);
+        throw new IllegalStateException("No statements available to map to faultloc line " + line);
     }
+
+    /* returns one statement to edit, chosen randomly but biased by fl weights.*/
+    public StatementId getTarget() {
+        double r = rand.nextDouble() * total;
+        int idx = Collections.binarySearch(cumulative, r);
+        if (idx < 0) idx = -idx - 1;
+        return ids.get(idx);
+    }
+
 }

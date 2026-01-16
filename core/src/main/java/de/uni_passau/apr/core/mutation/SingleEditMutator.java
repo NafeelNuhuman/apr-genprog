@@ -2,7 +2,7 @@ package de.uni_passau.apr.core.mutation;
 
 import de.uni_passau.apr.core.patch.operators.StatementCollector;
 import de.uni_passau.apr.core.patch.models.*;
-import de.uni_passau.apr.core.faultlocalization.FaultLocGuidedSampler;
+import de.uni_passau.apr.core.faultlocalization.FaultLocPrioratizedSampler;
 
 import java.util.List;
 import java.util.Objects;
@@ -13,13 +13,13 @@ public final class SingleEditMutator {
     private final double mutationProbability;
     private final Random rng;
     private final StatementCollector collector;
-    private final FaultLocGuidedSampler sampler;
+    private final FaultLocPrioratizedSampler sampler;
     private final boolean sameTypeDonorOnly;
 
     public SingleEditMutator(double mutationProbability,
                              Random rng,
                              StatementCollector collector,
-                             FaultLocGuidedSampler sampler,
+                             FaultLocPrioratizedSampler sampler,
                              boolean sameTypeDonorOnly) {
         if (mutationProbability < 0.0 || mutationProbability > 1.0) {
             throw new IllegalArgumentException("mutationProbability must be in [0,1]");
@@ -58,7 +58,7 @@ public final class SingleEditMutator {
     }
 
     private Patch changeTarget(EditOp op) {
-        StatementId newTarget = sampler.sampleTarget();
+        StatementId newTarget = sampler.getTarget();
 
         if (op instanceof DeleteOp) {
             return new Patch(List.of(new DeleteOp(newTarget)));

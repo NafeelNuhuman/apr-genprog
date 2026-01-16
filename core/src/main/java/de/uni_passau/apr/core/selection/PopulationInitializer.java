@@ -2,7 +2,7 @@ package de.uni_passau.apr.core.selection;
 
 import de.uni_passau.apr.core.patch.operators.StatementCollector;
 import de.uni_passau.apr.core.patch.models.*;
-import de.uni_passau.apr.core.faultlocalization.FaultLocGuidedSampler;
+import de.uni_passau.apr.core.faultlocalization.FaultLocPrioratizedSampler;
 
 import java.util.*;
 
@@ -11,7 +11,7 @@ public final class PopulationInitializer {
     private final int populationSize;
     private final Random rng;
     private final StatementCollector collector;
-    private final FaultLocGuidedSampler sampler;
+    private final FaultLocPrioratizedSampler sampler;
 
     // 0.1 means 10% delete, 90% replace
     private final double deleteProbability;
@@ -24,7 +24,7 @@ public final class PopulationInitializer {
     public PopulationInitializer(int populationSize,
                                  Random rng,
                                  StatementCollector collector,
-                                 FaultLocGuidedSampler sampler,
+                                 FaultLocPrioratizedSampler sampler,
                                  double deleteProbability,
                                  boolean sameTypeDonorOnly) {
         if (populationSize <= 0) throw new IllegalArgumentException("populationSize must be > 0");
@@ -71,7 +71,7 @@ public final class PopulationInitializer {
 
     private Patch createRandomSingleEditPatch() {
         // 1 target biased by fault localization
-        StatementId target = sampler.sampleTarget();
+        StatementId target = sampler.getTarget();
 
         // 2 choose operation type
         boolean doDelete = rng.nextDouble() < deleteProbability;

@@ -1,14 +1,24 @@
 package de.uni_passau.apr.core.algorithm;
 
 import de.uni_passau.apr.core.benchmark.BenchmarkConfig;
-import de.uni_passau.apr.core.faultlocalization.FaultLocGuidedSampler;
+import de.uni_passau.apr.core.crossover.SingleEditCrossover;
+import de.uni_passau.apr.core.evaluator.Evaluator;
+import de.uni_passau.apr.core.faultlocalization.FaultLocPrioratizedSampler;
+import de.uni_passau.apr.core.faultlocalization.FaultLocalization;
 import de.uni_passau.apr.core.faultlocalization.FaultLocalizationProvider;
+import de.uni_passau.apr.core.fitness.FitnessEvaluator;
+import de.uni_passau.apr.core.mutation.SingleEditMutator;
 import de.uni_passau.apr.core.patch.operators.StatementCollector;
+import de.uni_passau.apr.core.patch.operators.PatchApplier;
 import de.uni_passau.apr.core.patch.models.Patch;
 import de.uni_passau.apr.core.selection.PopulationInitializer;
 import de.uni_passau.apr.core.patch.models.Individual;
 import de.uni_passau.apr.core.selection.NextGenerationProducerFactory;
+import de.uni_passau.apr.core.service.LoadedBenchmark;
+import de.uni_passau.apr.core.evaluator.EvaluationResult;
+import de.uni_passau.apr.core.testrunner.TestResult;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -18,125 +28,161 @@ import java.util.*;
  * -repeat generations (selection/crossover/mutation -> children)
  * -stop when repair found or limits reached
  */
-public final class GenProgEngine {
+public final class GenProgEngine implements RepairAlgorithm {
 
     private final FaultLocalizationProvider faultLocProvider;
-    private final CandidateEvaluator candidateEvaluator;
+    private final FitnessEvaluator fitnessEvaluator;
+    private final Evaluator evaluator;
 
-    private final de.uni_passau.apr.core.crossover.SingleEditCrossover crossover;
-    private final de.uni_passau.apr.core.mutation.SingleEditMutator mutator;
+    private final SingleEditCrossover crossover;
+    private final SingleEditMutator mutator;
 
     private final int populationSize;
     private final int maxGenerations;
 
     public GenProgEngine(FaultLocalizationProvider faultLocProvider,
-                         CandidateEvaluator candidateEvaluator,
-                         de.uni_passau.apr.core.crossover.SingleEditCrossover crossover,
-                         de.uni_passau.apr.core.mutation.SingleEditMutator mutator,
+                         FitnessEvaluator fitnessEvaluator, Evaluator evaluator,
+                         SingleEditCrossover crossover,
+                         SingleEditMutator mutator,
                          int populationSize,
                          int maxGenerations) {
 
         this.faultLocProvider = Objects.requireNonNull(faultLocProvider);
-        this.candidateEvaluator = Objects.requireNonNull(candidateEvaluator);
+        this.fitnessEvaluator = Objects.requireNonNull(fitnessEvaluator);
+        this.evaluator = evaluator;
         this.crossover = Objects.requireNonNull(crossover);
         this.mutator = Objects.requireNonNull(mutator);
 
-        if (populationSize <= 0) throw new IllegalArgumentException("populationSize must be > 0");
-        if (maxGenerations <= 0) throw new IllegalArgumentException("maxGenerations must be > 0");
+        if (populationSize <= 0) throw new IllegalArgumentException("population size must be > 0");
+        if (maxGenerations <= 0) throw new IllegalArgumentException("max generations must be > 0");
 
         this.populationSize = populationSize;
         this.maxGenerations = maxGenerations;
     }
 
-    /**
-     * Output of the search run.
-     * - repaired=true means we found a patch that passes all tests
-     * - bestCandidate always holds the best seen (even if no full repair was found)
-     */
-    public record SearchResult(boolean repaired, EvaluatedCandidate bestCandidate, int generationsRan) { }
 
-    /**
-     * Runs the GenProg loop for a single benchmark.
-     *
-     * @param config benchmark config used by faultloc provider + evaluator
-     * @param buggyFile path to buggy Java file (needed for parsing + patch apply)
-     * @param rng random generator (seeded externally)
-     */
-    public SearchResult repair(BenchmarkConfig config, Path buggyFile, Random rng) throws Exception {
-        Objects.requireNonNull(config);
-        Objects.requireNonNull(buggyFile);
-        Objects.requireNonNull(rng);
+    @Override
+    public RepairResult run(LoadedBenchmark benchmark, RunConfig runConfig) {
+        Objects.requireNonNull(benchmark, "benchmark");
+        Objects.requireNonNull(runConfig, "runCnfig");
 
-        //Parse buggy file into statements
-        StatementCollector collector = StatementCollector.fromFile(buggyFile);
+        InitContext ctx = initialisations(benchmark);
 
-        //Build faultloc guided sampler
-        var sampler = new FaultLocGuidedSampler(
-                config, faultLocProvider, collector, rng
-        );
-
-        //Initial population of random single-edit patches
-        PopulationInitializer initializer = new PopulationInitializer(
-                populationSize,
-                rng,
-                collector,
-                sampler,
-                0.10, // deleteProbability
-                true  // sameTypeDonorOnly
-        );
-
-        List<Patch> patches = initializer.initialize();
+        BenchmarkConfig config = ctx.config();
+        Path buggyFile = ctx.buggyFile();
+        Random rand = ctx.rand();
+        List<Patch> patches = ctx.patches();
+        List<EvaluatedCandidate> population = ctx.population();
+        EvaluatedCandidate bestSoFar = ctx.bestSoFar();
 
         //Evaluate initial population
-        List<EvaluatedCandidate> population = candidateEvaluator.evaluateAll(config, buggyFile, patches);
-        EvaluatedCandidate bestSoFar = bestOf(population);
+        for (Patch patch : patches) {
+            EvaluatedCandidate cand = evaluateCandidate(buggyFile, config, patch);
+            population.add(cand);
 
-        if (candidateEvaluator.isSuccessful(bestSoFar)) {
-            return new SearchResult(true, bestSoFar, 0);
+            bestSoFar = updateBest(bestSoFar, cand);
+
+            RepairResult success = successResultIfAny(buggyFile, cand);
+            if (success != null) {
+                return success;
+            }
         }
 
-        //Evolution loop
-        int gen;
-        for (gen = 1; gen <= maxGenerations; gen++) {
+        // If everything failed apply/evaluate, avoid NPE
+        if (population.isEmpty() || bestSoFar == null) {
+            return new RepairResult("", null, false);
+        }
+
+        //Generation eval loop
+        for (int gen = 1; gen <= maxGenerations; gen++) {
 
             // Convert to selection individuals (Patch + fitness)
             List<Individual> selectionPop = toSelectionIndividuals(population);
 
-            // Produce next generation patches (selection -> crossover -> mutation)
+            // Produce next generation patches (selection + crossover + mutation)
             List<Patch> childrenPatches = NextGenerationProducerFactory.buildNextGenerationPatches(
-                    selectionPop, rng, crossover, mutator
+                    selectionPop, rand, crossover, mutator
             );
 
-            // Evaluate children
-            List<EvaluatedCandidate> children = candidateEvaluator.evaluateAll(config, buggyFile, childrenPatches);
+            List<EvaluatedCandidate> childPopulation = new ArrayList<>(childrenPatches.size());
 
-            // Success check
-            for (EvaluatedCandidate c : children) {
-                if (candidateEvaluator.isSuccessful(c)) {
-                    return new SearchResult(true, c, gen);
+            // Evaluate children
+            for (Patch babyPatch : childrenPatches) {
+                EvaluatedCandidate child = evaluateCandidate(buggyFile, config, babyPatch);
+                childPopulation.add(child);
+
+                bestSoFar = updateBest(bestSoFar, child);
+
+                RepairResult success = successResultIfAny(buggyFile, child);
+                if (success != null) {
+                    return success;
                 }
             }
 
-            // Best-so-far tracking
-            EvaluatedCandidate bestChild = bestOf(children);
-            if (bestChild.fitness() > bestSoFar.fitness()) {
-                bestSoFar = bestChild;
-            }
-
-            population = children;
+            population = childPopulation;
         }
 
-        // No full repair found
-        return new SearchResult(false, bestSoFar, maxGenerations);
+
+        //no full repair
+        String bestCandidateSource;
+        try {
+            bestCandidateSource = PatchApplier.apply(buggyFile, bestSoFar.patch());
+        } catch (Exception ex) {
+            bestCandidateSource = "";
+        }
+
+        return new RepairResult(bestCandidateSource, bestSoFar.evaluation(), false);
+    }
+
+    //-------------Helpers----------------
+
+    private RepairResult successResultIfAny(Path buggyFile, EvaluatedCandidate cand) {
+        if (cand == null || cand.evaluation() == null || !isSuccessful(cand.evaluation())) return null;
+        try {
+            String src = PatchApplier.apply(buggyFile, cand.patch());
+            return new RepairResult(src, cand.evaluation(), true);
+        } catch (Exception e) {
+            return new RepairResult("", cand.evaluation(), true);
+        }
+    }
+
+    private EvaluatedCandidate evaluateCandidate(Path buggyFile, BenchmarkConfig config, Patch patch) {
+        String candidateSource;
+        try {
+            candidateSource = PatchApplier.apply(buggyFile, patch);
+        } catch (Exception ex) {
+            return new EvaluatedCandidate(patch, Double.NEGATIVE_INFINITY, null);
+        }
+
+        EvaluationResult evalResult = evaluator.evaluate(config, candidateSource);
+        double fitness = fitnessEvaluator.computeFitness(evalResult);
+        return new EvaluatedCandidate(patch, fitness, evalResult);
+    }
+
+    private static EvaluatedCandidate updateBest(EvaluatedCandidate bestSoFar, EvaluatedCandidate cand) {
+        if (cand == null) return bestSoFar;
+        if (bestSoFar == null) return cand;
+        return cand.fitness() > bestSoFar.fitness() ? cand : bestSoFar;
     }
 
     /**
-     * Returns the best candidate by fitness (higher is better).
+     * returns the full EvaluatedCandidate with highest fitness.
      */
-    private static EvaluatedCandidate bestOf(List<EvaluatedCandidate> pop) {
+    private static EvaluatedCandidate bestCandidateOf(List<EvaluatedCandidate> pop) {
         return pop.stream()
                 .max(Comparator.comparingDouble(EvaluatedCandidate::fitness))
                 .orElseThrow(() -> new IllegalArgumentException("empty population"));
+    }
+
+    /**
+     * Returns true if the candidate is
+     * considered (tests passed and not timed out) a successful repair.
+     *
+     */
+    public boolean isSuccessful(EvaluationResult eval) {
+        if (eval == null || eval.getTestResult() == null) return false;
+        TestResult tr = eval.getTestResult();
+        return tr.isAllPassed() && !tr.isTimedOut();
     }
 
     /**
@@ -149,4 +195,52 @@ public final class GenProgEngine {
         }
         return out;
     }
+
+    private record InitContext(
+            BenchmarkConfig config,
+            Path buggyFile,
+            Random rand,
+            List<Patch> patches,
+            List<EvaluatedCandidate> population,
+            EvaluatedCandidate bestSoFar
+    ) {}
+
+    private InitContext initialisations(LoadedBenchmark benchmark) {
+        BenchmarkConfig config = benchmark.config();
+        Path buggyFile = config.getBuggyProgramPath();
+
+        Random rand = new Random();
+
+        StatementCollector collector;
+        try {
+            collector = StatementCollector.fromFile(buggyFile);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        FaultLocalization fl;
+        try {
+            fl = faultLocProvider.loadFor(config);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        var sampler = new FaultLocPrioratizedSampler(fl, collector, rand);
+
+        PopulationInitializer initializer = new PopulationInitializer(
+                populationSize,
+                rand,
+                collector,
+                sampler,
+                0.10,
+                true
+        );
+
+        List<Patch> patches = initializer.initialize();
+        List<EvaluatedCandidate> population = new ArrayList<>(patches.size());
+        EvaluatedCandidate bestSoFar = null;
+
+        return new InitContext(config, buggyFile, rand, patches, population, bestSoFar);
+    }
+
 }
