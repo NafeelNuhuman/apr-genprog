@@ -8,7 +8,7 @@ import de.uni_passau.apr.core.patch.models.StatementId;
 import java.nio.file.Path;
 import java.util.*;
 
-/** Get all statement nodes with their statementIds in a file **/
+/** Get all statement nodes with their statement ids in a file **/
 public final class StatementCollector {
 
     private final CompilationUnit cu;
@@ -29,7 +29,7 @@ public final class StatementCollector {
 
         ParseResult<CompilationUnit> result = parser.parse(javaFile);
         CompilationUnit cu = result.getResult()
-                .orElseThrow(() -> new IllegalArgumentException("Parse failed: " + result.getProblems()));
+                .orElseThrow(() -> new IllegalArgumentException("Parse failed : " + result.getProblems()));
 
         Map<StatementId, Statement> map = new LinkedHashMap<>();
         cu.findAll(Statement.class).forEach(stmt -> {
@@ -49,9 +49,9 @@ public final class StatementCollector {
     public CompilationUnit cu() { return cu; }
     public List<StatementId> allStatementIds() { return Collections.unmodifiableList(allIds); }
 
-    public Statement getStmt(StatementId id) {
+    public Statement getStatement(StatementId id) {
         Statement s = byId.get(id);
-        if (s == null) throw new IllegalArgumentException("Unknown statement id: " + id);
+        if (s == null) throw new IllegalArgumentException("Unknown statement id : " + id);
         return s;
     }
 }

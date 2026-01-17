@@ -8,17 +8,17 @@ public class TestReportSummary {
     private int failures;
     private int errors;
     private int skipped;
-    private List<String> failedTestsIDs;
+    private List<String> failedTestIds;
 
     public TestReportSummary() {
     }
 
-    public TestReportSummary(int testsRun, int failures, int errors, int skipped, List<String> failedTestsIDs) {
+    public TestReportSummary(int testsRun, int failures, int errors, int skipped, List<String> failedTestIds) {
         this.testsRun = testsRun;
         this.failures = failures;
         this.errors = errors;
         this.skipped = skipped;
-        this.failedTestsIDs = failedTestsIDs;
+        this.failedTestIds = failedTestIds;
     }
 
     public int getTestsRun() {
@@ -53,11 +53,11 @@ public class TestReportSummary {
         this.skipped = skipped;
     }
 
-    public List<String> getFailedTestsIDs() {
-        return failedTestsIDs;
+    public List<String> getFailedTestIds() {
+        return failedTestIds;
     }
 
-    public void setFailedTestsIDs(List<String> failedTestsIDs) {
-        this.failedTestsIDs = failedTestsIDs;
+    public void setFailedTestIds(List<String> failedTestIds) {
+        this.failedTestIds = failedTestIds;
     }
 }

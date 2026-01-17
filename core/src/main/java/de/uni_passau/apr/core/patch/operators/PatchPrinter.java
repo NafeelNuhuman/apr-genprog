@@ -10,14 +10,12 @@ import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.Objects;
 
-import static java.util.stream.Collectors.toList;
 
 /**
- * Produces a human readable description of a Patch
+ * Produces a human readable description of a Patch with
  * -edit type
  * -target location
  * -before/after statement snippets
- *
  * Note : meant for CLI output + report.
  */
 public final class PatchPrinter {

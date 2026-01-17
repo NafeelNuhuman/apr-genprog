@@ -11,7 +11,7 @@ import java.io.IOException;
 
 
 /**
- * High-level service for loading and repairing programs.
+ * Service for loading and repairing programs.
  */
 public class RepairService {
 
@@ -21,13 +21,13 @@ public class RepairService {
 
     public RepairService(BenchmarkLoader benchmarkLoader, Evaluator evaluator, FaultLocalizationProvider faultLocProvider) {
         if (benchmarkLoader == null) {
-            throw new IllegalArgumentException("BenchmarkLoader cannot be null");
+            throw new IllegalArgumentException("Benchmark Loader cant be null");
         }
         if (evaluator == null) {
-            throw new IllegalArgumentException("Evaluator cannot be null");
+            throw new IllegalArgumentException("Evaluator cant be null");
         }
         if (faultLocProvider == null) {
-            throw new IllegalArgumentException("FaultLocProvider cannot be null");
+            throw new IllegalArgumentException("FaultLoc Provider cant be null");
         }
         this.benchmarkLoader = benchmarkLoader;
         this.evaluator = evaluator;
@@ -52,8 +52,8 @@ public class RepairService {
         return new LoadedBenchmark(config, faultLocalization);
     }
 
-    public EvaluationResult evaluateCandidate(BenchmarkConfig config, String candidateSource) {
-        return evaluator.evaluate(config, candidateSource);
+    public EvaluationResult evaluateCandidate(BenchmarkConfig config, String candidateSrc) {
+        return evaluator.evaluate(config, candidateSrc);
     }
 
 }

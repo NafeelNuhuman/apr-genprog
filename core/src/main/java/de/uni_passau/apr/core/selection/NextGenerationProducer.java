@@ -1,5 +1,7 @@
 package de.uni_passau.apr.core.selection;
 
+import de.uni_passau.apr.core.crossover.SingleEditCrossover;
+import de.uni_passau.apr.core.mutation.SingleEditMutator;
 import de.uni_passau.apr.core.patch.models.*;
 
 import java.util.*;
@@ -11,8 +13,8 @@ public final class NextGenerationProducer<E> {
     private final ParentSelector<E> selector;
     private final Function<E, Patch> patchOf;
 
-    private final de.uni_passau.apr.core.crossover.SingleEditCrossover crossover;
-    private final de.uni_passau.apr.core.mutation.SingleEditMutator mutator;
+    private final SingleEditCrossover crossover;
+    private final SingleEditMutator mutator;
 
     private final boolean enforceUnique;
     private final int maxAttemptsPerChild;
@@ -20,11 +22,11 @@ public final class NextGenerationProducer<E> {
     public NextGenerationProducer(int populationSize,
                                   ParentSelector<E> selector,
                                   Function<E, Patch> patchOf,
-                                  de.uni_passau.apr.core.crossover.SingleEditCrossover crossover,
-                                  de.uni_passau.apr.core.mutation.SingleEditMutator mutator,
+                                  SingleEditCrossover crossover,
+                                  SingleEditMutator mutator,
                                   boolean enforceUnique,
                                   int maxAttemptsPerChild) {
-        if (populationSize <= 0) throw new IllegalArgumentException("populationSize must be > 0");
+        if (populationSize <= 0) throw new IllegalArgumentException("population size must be > 0");
         this.populationSize = populationSize;
         this.selector = Objects.requireNonNull(selector);
         this.patchOf = Objects.requireNonNull(patchOf);
@@ -35,9 +37,8 @@ public final class NextGenerationProducer<E> {
     }
 
     /**
-     * Builds next generation patches from an evaluated population.
-     * Population elements must already have fitness somewhere (selector uses it),
-     * but this method only returns child patches.
+     * Build next generation patches from an already
+     * evaluated population and return child patches.
      */
     public List<Patch> produce(List<E> population) {
         if (population == null || population.isEmpty()) {
@@ -50,7 +51,6 @@ public final class NextGenerationProducer<E> {
         int globalGuard = 0;
         while (children.size() < populationSize) {
             if (++globalGuard > populationSize * maxAttemptsPerChild) {
-                // Safety net: stop trying to enforce uniqueness too hard
                 if (enforceUnique) {
                     return fillWithoutUniqueness(children, population);
                 }
@@ -76,7 +76,7 @@ public final class NextGenerationProducer<E> {
             children.add(child);
         }
 
-        // If we somehow didn’t reach size, fill by cloning parent patches (rare)
+        // If we didn’t reach size, fill by cloning parent patches
         while (children.size() < populationSize) {
             E p = selector.selectOne(population);
             children.add(patchOf.apply(p));
@@ -98,7 +98,7 @@ public final class NextGenerationProducer<E> {
     }
 
     private static String signatureSingleEdit(Patch patch) {
-        // Your Patch allows up to 3 edits, but you said you’re using 1 edit now.
+        //Using only 1 edit
         EditOp op = patch.edits().get(0);
 
         if (op instanceof DeleteOp d) {

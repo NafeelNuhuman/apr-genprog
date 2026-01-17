@@ -22,7 +22,7 @@ public final class SingleEditMutator {
                              FaultLocPrioratizedSampler sampler,
                              boolean sameTypeDonorOnly) {
         if (mutationProbability < 0.0 || mutationProbability > 1.0) {
-            throw new IllegalArgumentException("mutationProbability must be in [0,1]");
+            throw new IllegalArgumentException("mutation probability must be in [0,1]");
         }
         this.mutationProbability = mutationProbability;
         this.rng = Objects.requireNonNull(rng);
@@ -31,7 +31,7 @@ public final class SingleEditMutator {
         this.sameTypeDonorOnly = sameTypeDonorOnly;
     }
 
-    // Apply mutation with probability p; otherwise return the original patch unchanged.
+    /** Apply mutation with probability p; otherwise return the original patch unchanged. */
     public Patch maybeMutate(Patch patch) {
         Objects.requireNonNull(patch);
         if (rng.nextDouble() >= mutationProbability) {
@@ -40,7 +40,7 @@ public final class SingleEditMutator {
         return mutateOnce(patch);
     }
 
-    // Always exactly one mutation step but try a different stratergy out of 3
+    /** Always exactly one mutation step but try a different stratergy out of 3**/
     public Patch mutateOnce(Patch patch) {
         EditOp op = singleOp(patch);
 
@@ -80,8 +80,7 @@ public final class SingleEditMutator {
             if (newDonor.equals(target)) return null;
             return new Patch(List.of(new ReplaceOp(target, newDonor)));
         }
-        // If it's delete, changeDonor doesn't apply, treat it as no op
-        // (return null to retry)
+        // If it's delete, changeDonor doesn't apply, treat it as noop
         return null;
     }
 
@@ -112,18 +111,18 @@ public final class SingleEditMutator {
             return all.get(rng.nextInt(all.size()));
         }
 
-        // same type donor selection (improves compile rate)
-        Class<?> targetType = collector.getStmt(target).getClass();
+        // same type donor selection (mention in report - improves compile rate)
+        Class<?> targetType = collector.getStatement(target).getClass();
         // try a few random donors first (cuz cheap)
         for (int i = 0; i < 30; i++) {
             StatementId candidate = all.get(rng.nextInt(all.size()));
-            if (collector.getStmt(candidate).getClass().equals(targetType)) {
+            if (collector.getStatement(candidate).getClass().equals(targetType)) {
                 return candidate;
             }
         }
-        // fallback
+
         for (StatementId candidate : all) {
-            if (collector.getStmt(candidate).getClass().equals(targetType)) {
+            if (collector.getStatement(candidate).getClass().equals(targetType)) {
                 return candidate;
             }
         }

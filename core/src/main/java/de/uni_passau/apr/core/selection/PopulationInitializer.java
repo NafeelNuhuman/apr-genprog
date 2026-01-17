@@ -13,12 +13,12 @@ public final class PopulationInitializer {
     private final StatementCollector collector;
     private final FaultLocPrioratizedSampler sampler;
 
-    // 0.1 means 10% delete, 90% replace
+    // note - 0.1  10% delete, 90% replace
     private final double deleteProbability;
 
     private final boolean sameTypeDonorOnly;
 
-    // donor pool by statement class (IfStmt, ReturnStmt, ExpressionStmt, etc.)
+    // pool by statement class (IfStmt, ReturnStmt, ExpressionStmt etc)
     private final Map<Class<?>, List<StatementId>> donorsByType = new HashMap<>();
 
     public PopulationInitializer(int populationSize,
@@ -48,7 +48,6 @@ public final class PopulationInitializer {
         int guard = 0;
         while (pop.size() < populationSize) {
             if (guard++ > populationSize * 50) {
-                // safety
                 break;
             }
 
@@ -70,20 +69,19 @@ public final class PopulationInitializer {
     }
 
     private Patch createRandomSingleEditPatch() {
-        // 1 target biased by fault localization
+        // Target biased by fault localization
         StatementId target = sampler.getTarget();
 
-        // 2 choose operation type
+        // Choose operation type
         boolean doDelete = rng.nextDouble() < deleteProbability;
 
         if (doDelete) {
             return new Patch(List.of(new DeleteOp(target)));
         }
 
-        // Replace, pick donor
         StatementId donor = pickDonorForTarget(target);
 
-        // If we fail to find a donor, fallback to delete
+        // When failin to find a donor, fall back to delete
         if (donor == null || donor.equals(target)) {
             return new Patch(List.of(new DeleteOp(target)));
         }
@@ -93,7 +91,7 @@ public final class PopulationInitializer {
 
     private void buildDonorPools() {
         for (StatementId id : collector.allStatementIds()) {
-            Class<?> type = collector.getStmt(id).getClass();
+            Class<?> type = collector.getStatement(id).getClass();
             donorsByType.computeIfAbsent(type, k -> new ArrayList<>()).add(id);
         }
     }
@@ -103,7 +101,6 @@ public final class PopulationInitializer {
         if (all.isEmpty()) return null;
 
         if (!sameTypeDonorOnly) {
-            // any statement as donor
             for (int i = 0; i < 20; i++) {
                 StatementId d = all.get(rng.nextInt(all.size()));
                 if (!d.equals(target)) return d;
@@ -112,17 +109,16 @@ public final class PopulationInitializer {
         }
 
         // same type donors only
-        Class<?> targetType = collector.getStmt(target).getClass();
+        Class<?> targetType = collector.getStatement(target).getClass();
         List<StatementId> candidates = donorsByType.getOrDefault(targetType, List.of());
         if (candidates.isEmpty()) return null;
 
-        // pick random donor that isn't the target
+        // pick a random donor that isn't the target
         for (int i = 0; i < 20; i++) {
             StatementId d = candidates.get(rng.nextInt(candidates.size()));
             if (!d.equals(target)) return d;
         }
 
-        // fallback scan
         for (StatementId d : candidates) {
             if (!d.equals(target)) return d;
         }

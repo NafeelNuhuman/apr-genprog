@@ -6,16 +6,16 @@ import java.nio.file.Files;
 import java.time.Duration;
 
 /**
- * A TestRunner implementation that uses Maven to run tests.
+ * A TestRunner that uses Maven to run tests.
  */
 public class MavenTestRunner implements TestRunner {
 
-    private String mvnCommand = "mvn";
+    private String mvnCmd = "mvn";
     private Duration timeout = Duration.ofSeconds(50);
 
     public MavenTestRunner() {
         if (System.getProperty("os.name").toLowerCase().contains("win")) {
-            mvnCommand += ".cmd";
+            mvnCmd += ".cmd";
         }
     }
 
@@ -27,18 +27,18 @@ public class MavenTestRunner implements TestRunner {
         this.timeout = timeout;
     }
 
-    public MavenTestRunner(String mvnCommand, Duration timeout) {
-        if (mvnCommand == null || mvnCommand.isBlank()) {
+    public MavenTestRunner(String mvnCmd, Duration timeout) {
+        if (mvnCmd == null || mvnCmd.isBlank()) {
             throw new IllegalArgumentException("Maven command must not be null or blank");
         }
         if (timeout == null || timeout.isNegative() || timeout.isZero()) {
             throw new IllegalArgumentException("Timeout must be a positive duration");
         }
         // OS aware command adjustment
-        if (System.getProperty("os.name").toLowerCase().contains("win") && !mvnCommand.endsWith(".cmd")) {
-            mvnCommand += ".cmd";
+        if (System.getProperty("os.name").toLowerCase().contains("win") && !mvnCmd.endsWith(".cmd")) {
+            mvnCmd += ".cmd";
         }
-        this.mvnCommand = mvnCommand;
+        this.mvnCmd = mvnCmd;
         this.timeout = timeout;
     }
 
@@ -57,7 +57,7 @@ public class MavenTestRunner implements TestRunner {
         // set working directory to workspaceDir
         ProcessBuilder processBuilder = new ProcessBuilder();
         processBuilder.directory(workspaceDir.toFile());
-        processBuilder.command(mvnCommand, "-q", "test");
+        processBuilder.command(mvnCmd, "-q", "test");
         processBuilder.redirectErrorStream(true);
         TestResult result = new TestResult();
         try {
@@ -106,7 +106,7 @@ public class MavenTestRunner implements TestRunner {
             result.setFailures(summary.getFailures());
             result.setErrors(summary.getErrors());
             result.setSkipped(summary.getSkipped());
-            result.setFailedTests(summary.getFailedTestsIDs());
+            result.setFailedTests(summary.getFailedTestIds());
             result.setAllPassed(exitCode == 0 && summary.getFailures() == 0 && summary.getErrors() == 0);
         } catch (java.io.IOException ioe) {
             result.setExitCode(127);

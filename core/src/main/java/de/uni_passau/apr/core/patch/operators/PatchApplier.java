@@ -20,7 +20,8 @@ public final class PatchApplier {
     private PatchApplier() {}
 
     /**
-     * Applies a patch to a Java source file and returns the modified source as a String.
+     * Applies a patch to a Java source file.
+     * @return - String modified source
      */
     public static String apply(Path javaFile, Patch patch) throws IOException {
         Objects.requireNonNull(javaFile, "javaFile");
@@ -40,18 +41,17 @@ public final class PatchApplier {
                 target.remove();
             } else if (op instanceof ReplaceOp rep) {
                 if (rep.target().equals(rep.donor())) {
-                    throw new IllegalArgumentException("ReplaceOp donor equals target: " + rep.target());
+                    throw new IllegalArgumentException("ReplaceOp donor equals target : " + rep.target());
                 }
                 Statement target = PatchUtils.findStatementById(cu, rep.target());
                 Statement donor = PatchUtils.findStatementById(cu, rep.donor());
 
-                // safety - (already enforcing same statements but tbs)
                 if (!target.getClass().equals(donor.getClass())) continue;
 
                 Statement donorClone = donor.clone();
                 target.replace(donorClone);
             } else {
-                throw new IllegalArgumentException("Unknown EditOp type: " + op.getClass());
+                throw new IllegalArgumentException("Unknown EditOp type : " + op.getClass());
             }
         }
 
@@ -59,7 +59,8 @@ public final class PatchApplier {
     }
 
     /**
-     * Applies a patch and writes the modified source to outputFile (creates parent dirs if needed).
+     * Applies a patch and writes the modified source to outputFile
+     * (creates parent dirs if needed).
      */
     public static void applyToFile(Path inputFile, Path outputFile, Patch patch) throws IOException {
         Objects.requireNonNull(outputFile, "outputFile");

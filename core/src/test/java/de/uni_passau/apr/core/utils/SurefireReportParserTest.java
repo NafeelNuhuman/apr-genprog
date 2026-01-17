@@ -27,7 +27,7 @@ class SurefireReportParserTest {
         assertEquals(0, summary.getErrors());
         assertEquals(0, summary.getSkipped());
 
-        List<String> failed = summary.getFailedTestsIDs();
+        List<String> failed = summary.getFailedTestIds();
         assertTrue(failed == null || failed.isEmpty());
     }
 
@@ -43,7 +43,7 @@ class SurefireReportParserTest {
         assertEquals(0, summary.getFailures());
         assertEquals(0, summary.getErrors());
         assertEquals(0, summary.getSkipped());
-        assertTrue(summary.getFailedTestsIDs() == null || summary.getFailedTestsIDs().isEmpty());
+        assertTrue(summary.getFailedTestIds() == null || summary.getFailedTestIds().isEmpty());
     }
 
     @Test
@@ -73,7 +73,7 @@ class SurefireReportParserTest {
         assertEquals(0, summary.getErrors());
         assertEquals(1, summary.getSkipped());
 
-        assertEquals(List.of("ProgramTest#fails"), summary.getFailedTestsIDs());
+        assertEquals(List.of("ProgramTest#fails"), summary.getFailedTestIds());
     }
 
     @Test
@@ -99,7 +99,7 @@ class SurefireReportParserTest {
         assertEquals(0, summary.getFailures());
         assertEquals(1, summary.getErrors());
         assertEquals(0, summary.getSkipped());
-        assertEquals(List.of("ErrSuite#boom"), summary.getFailedTestsIDs());
+        assertEquals(List.of("ErrSuite#boom"), summary.getFailedTestIds());
     }
 
     @Test
@@ -140,7 +140,7 @@ class SurefireReportParserTest {
         assertEquals(1, summary.getErrors());
         assertEquals(0, summary.getSkipped());
 
-        assertEquals(List.of("A#t1", "B#t3"), summary.getFailedTestsIDs());
+        assertEquals(List.of("A#t1", "B#t3"), summary.getFailedTestIds());
     }
 
     @Test
@@ -157,7 +157,7 @@ class SurefireReportParserTest {
         assertEquals(0, summary.getFailures());
         assertEquals(0, summary.getErrors());
         assertEquals(0, summary.getSkipped());
-        assertTrue(summary.getFailedTestsIDs() == null || summary.getFailedTestsIDs().isEmpty());
+        assertTrue(summary.getFailedTestIds() == null || summary.getFailedTestIds().isEmpty());
     }
 
     @Test
@@ -185,6 +185,6 @@ class SurefireReportParserTest {
         assertEquals(1, summary.getFailures());
         assertEquals(0, summary.getErrors());
         assertEquals(0, summary.getSkipped());
-        assertEquals(List.of("Good#fails"), summary.getFailedTestsIDs());
+        assertEquals(List.of("Good#fails"), summary.getFailedTestIds());
     }
 }

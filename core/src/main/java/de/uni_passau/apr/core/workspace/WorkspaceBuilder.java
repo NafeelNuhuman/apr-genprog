@@ -7,8 +7,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
- * Builds a fresh temporary Maven workspace
- * for one benchmark and one candidate variant.
+ * Build a new temp Maven workspace,
+ * for one benchmark and one candidate.
  */
 public class WorkspaceBuilder {
 
@@ -48,32 +48,31 @@ public class WorkspaceBuilder {
                 </project>
                 """;
     /**
-     * Create a fresh temp Maven project for
-     * one benchmark + one candidate variant.
-     * @param benchmarkConfig   The benchmark configuration.
-     * @param candidateVariant  The candidate variant source code.
+     * @param benchmarkConfig   the benchmark config.
+     * @param candidate  The candidate source code.
      * @return The path to the created workspace.
      */
-    public Path build(BenchmarkConfig benchmarkConfig, String candidateVariant) throws IOException {
-        Path workspacePath = Files.createTempDirectory("apr-" + benchmarkConfig.getName() + "-");
+    public Path build(BenchmarkConfig benchmarkConfig, String candidate) throws IOException {
+        Path workSpacePath = Files.createTempDirectory("apr-" + benchmarkConfig.getName() + "-");
 
         String testFileName = benchmarkConfig.getTestSuitePath().getFileName().toString();
         String programFileName = benchmarkConfig.getBuggyProgramPath().getFileName().toString();
 
         // Create pom.xml file
-        Files.writeString(workspacePath.resolve("pom.xml"), pomContent);
+        Files.writeString(workSpacePath.resolve("pom.xml"), pomContent);
 
-        // Create candidate variant source file at src/main/java
-        Files.createDirectories(workspacePath.resolve("src/main/java"));
-        Files.writeString(workspacePath.resolve("src/main/java/" + programFileName), candidateVariant, java.nio.charset.StandardCharsets.UTF_8);
+        // Create candidate source file @ src/main/java
+        Files.createDirectories(workSpacePath.resolve("src/main/java"));
+        Files.writeString(workSpacePath.resolve("src/main/java/" + programFileName), candidate, java.nio.charset.StandardCharsets.UTF_8);
 
-        // Create test suite source file at src/test/java
-        Files.createDirectories(workspacePath.resolve("src/test/java"));
-        Path dest = workspacePath.resolve("src/test/java").resolve(testFileName);
-        // copy, replace if existing
+        // Create test suite source file @ src/test/java
+        Files.createDirectories(workSpacePath.resolve("src/test/java"));
+        Path dest = workSpacePath.resolve("src/test/java").resolve(testFileName);
+
+        // copy/replace
         Files.copy(benchmarkConfig.getTestSuitePath(), dest, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
 
-        return workspacePath;
+        return workSpacePath;
     }
 
 }

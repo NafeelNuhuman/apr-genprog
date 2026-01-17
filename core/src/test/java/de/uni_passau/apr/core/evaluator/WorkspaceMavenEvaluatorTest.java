@@ -170,7 +170,7 @@ class WorkspaceMavenEvaluatorTest {
     void evaluate_wrapsWorkspaceBuildFailure() {
         WorkspaceBuilder builder = new WorkspaceBuilder() {
             @Override
-            public Path build(BenchmarkConfig benchmarkConfig, String candidateVariant) throws IOException {
+            public Path build(BenchmarkConfig benchmarkConfig, String candidate) throws IOException {
                 throw new IOException("boom");
             }
         };
@@ -227,7 +227,7 @@ class WorkspaceMavenEvaluatorTest {
         }
 
         @Override
-        public Path build(BenchmarkConfig benchmarkConfig, String candidateVariant) {
+        public Path build(BenchmarkConfig benchmarkConfig, String candidate) {
             return workspace;
         }
     }

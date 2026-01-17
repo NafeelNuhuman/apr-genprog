@@ -21,7 +21,8 @@ public final class PatchUtils {
 
     private PatchUtils() {}
 
-    /** Parse a Java file into a CompilationUnit (throws on parse failure). */
+    /** Parse a Java file into a CompilationUnit
+     * @exception IOException - (throws on parse failure). */
     public static CompilationUnit parse(Path javaFile) throws IOException {
         ParserConfiguration cfg = new ParserConfiguration();
         JavaParser parser = new JavaParser(cfg);
@@ -30,11 +31,11 @@ public final class PatchUtils {
         ParseResult<CompilationUnit> result = parser.parse(src);
 
         return result.getResult()
-                .orElseThrow(() -> new IllegalArgumentException("Parse failed: " + result.getProblems()));
+                .orElseThrow(() -> new IllegalArgumentException("Parse failed : " + result.getProblems()));
     }
 
     /**
-     * Finds a Statement node whose Range exactly matches the StatementId.
+     * Find a statement node whose Range exactly match the StatementId.
      */
     public static Statement findStatementById(CompilationUnit cu, StatementId id) {
         for (Statement stmt : cu.findAll(Statement.class)) {
@@ -48,7 +49,7 @@ public final class PatchUtils {
 
             if (stmtId.equals(id)) return stmt;
         }
-        throw new IllegalArgumentException("Statement not found for id: " + id);
+        throw new IllegalArgumentException("Statement not found for id : " + id);
     }
 
 

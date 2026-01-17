@@ -8,7 +8,7 @@ public record Patch(List<EditOp> edits) {
             throw new IllegalArgumentException("Patch must have edits");
         }
         if (edits.size() > 3) {
-            throw new IllegalArgumentException("Keep patches small (<=3) for now");
+            throw new IllegalArgumentException("Keep patches small");
         }
     }
 }

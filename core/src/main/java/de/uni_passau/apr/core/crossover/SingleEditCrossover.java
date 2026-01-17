@@ -50,7 +50,7 @@ public final class SingleEditCrossover {
     }
 
     private boolean sameType(StatementId t, StatementId d) {
-        return collector.getStmt(t).getClass().equals(collector.getStmt(d).getClass());
+        return collector.getStatement(t).getClass().equals(collector.getStatement(d).getClass());
     }
 
     private StatementId pickCompatibleDonor(StatementId target) {
@@ -62,16 +62,16 @@ public final class SingleEditCrossover {
             return donor.equals(target) ? all.get(0) : donor;
         }
 
-        Class<?> targetType = collector.getStmt(target).getClass();
+        Class<?> targetType = collector.getStatement(target).getClass();
         for (int i = 0; i < 30; i++) {
             StatementId candidate = all.get(rng.nextInt(all.size()));
-            if (!candidate.equals(target) && collector.getStmt(candidate).getClass().equals(targetType)) {
+            if (!candidate.equals(target) && collector.getStatement(candidate).getClass().equals(targetType)) {
                 return candidate;
             }
         }
         // fallback scan
         for (StatementId candidate : all) {
-            if (!candidate.equals(target) && collector.getStmt(candidate).getClass().equals(targetType)) {
+            if (!candidate.equals(target) && collector.getStatement(candidate).getClass().equals(targetType)) {
                 return candidate;
             }
         }
