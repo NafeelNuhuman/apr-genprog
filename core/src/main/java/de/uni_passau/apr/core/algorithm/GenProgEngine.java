@@ -4,8 +4,6 @@ import de.uni_passau.apr.core.benchmark.BenchmarkConfig;
 import de.uni_passau.apr.core.crossover.SingleEditCrossover;
 import de.uni_passau.apr.core.evaluator.Evaluator;
 import de.uni_passau.apr.core.faultlocalization.FaultLocPrioratizedSampler;
-import de.uni_passau.apr.core.faultlocalization.FaultLocalization;
-import de.uni_passau.apr.core.faultlocalization.FaultLocalizationProvider;
 import de.uni_passau.apr.core.fitness.FitnessEvaluator;
 import de.uni_passau.apr.core.mutation.SingleEditMutator;
 import de.uni_passau.apr.core.patch.operators.StatementCollector;
@@ -18,7 +16,6 @@ import de.uni_passau.apr.core.service.LoadedBenchmark;
 import de.uni_passau.apr.core.evaluator.EvaluationResult;
 import de.uni_passau.apr.core.testrunner.TestResult;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -30,7 +27,6 @@ import java.util.*;
  */
 public final class GenProgEngine implements RepairAlgorithm {
 
-    private final FaultLocalizationProvider faultLocProvider;
     private final FitnessEvaluator fitnessEvaluator;
     private final Evaluator evaluator;
 
@@ -40,14 +36,13 @@ public final class GenProgEngine implements RepairAlgorithm {
     private final int populationSize;
     private final int maxGenerations;
 
-    public GenProgEngine(FaultLocalizationProvider faultLocProvider,
-                         FitnessEvaluator fitnessEvaluator, Evaluator evaluator,
+    public GenProgEngine(FitnessEvaluator fitnessEvaluator,
+                         Evaluator evaluator,
                          SingleEditCrossover crossover,
                          SingleEditMutator mutator,
                          int populationSize,
                          int maxGenerations) {
 
-        this.faultLocProvider = Objects.requireNonNull(faultLocProvider);
         this.fitnessEvaluator = Objects.requireNonNull(fitnessEvaluator);
         this.evaluator = evaluator;
         this.crossover = Objects.requireNonNull(crossover);
@@ -169,7 +164,6 @@ public final class GenProgEngine implements RepairAlgorithm {
     /**
      * Returns true if the candidate is
      * considered (tests passed and not timed out) a successful repair.
-     *
      */
     public boolean isSuccessful(EvaluationResult eval) {
         if (eval == null || eval.getTestResult() == null) return false;
@@ -210,14 +204,7 @@ public final class GenProgEngine implements RepairAlgorithm {
             throw new RuntimeException(e);
         }
 
-        FaultLocalization fl;
-        try {
-            fl = faultLocProvider.loadFor(config);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        var sampler = new FaultLocPrioratizedSampler(fl, collector, rand);
+        var sampler = new FaultLocPrioratizedSampler(benchmark.faultLocalization(), collector, rand);
 
         PopulationInitializer initializer = new PopulationInitializer(
                 populationSize,
