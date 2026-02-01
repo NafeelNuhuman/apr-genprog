@@ -36,6 +36,7 @@ public class WorkspaceMavenEvaluator implements Evaluator {
         if (candidateSource == null || candidateSource.isEmpty()) {
             throw new IllegalArgumentException("Candidate source cannot be null or empty");
         }
+        System.out.println("Evaluating candidate source in workspace...");
 
         EvaluationResult result = new EvaluationResult();
         Path workspaceDir;

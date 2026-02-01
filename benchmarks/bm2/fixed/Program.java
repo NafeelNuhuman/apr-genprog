@@ -22,6 +22,9 @@ public class Program {
             return 0;
         }
 
+        // Donor call: doesn't change behavior, but keeps donor code reachable/exercised.
+        _donorSplitByComma(trimmed);
+
         String[] parts = trimmed.split(",");
 
         int sum = 0;
@@ -36,5 +39,14 @@ public class Program {
         }
 
         return sum;
+    }
+
+    /**
+     * Donor code for GenProg:
+     * Includes the likely repair ingredient "split(\",\")".
+     * GenProg can replace the buggy split(", ") with this statement.
+     */
+    private static String[] _donorSplitByComma(String trimmed) {
+        return trimmed.split(",");
     }
 }

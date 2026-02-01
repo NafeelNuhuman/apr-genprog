@@ -8,7 +8,8 @@ import picocli.CommandLine.Command;
         mixinStandardHelpOptions = true,
         description = "GenProg-style APR tool (course project).",
         subcommands = {
-                ValidateCommand.class
+                ValidateCommand.class,
+                RunCommand.class
         }
 )
 public class Main implements Runnable {

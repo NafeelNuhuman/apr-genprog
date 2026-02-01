@@ -34,7 +34,7 @@ public final class SingleEditMutator {
     /** Apply mutation with probability p; otherwise return the original patch unchanged. */
     public Patch maybeMutate(Patch patch) {
         Objects.requireNonNull(patch);
-        if (rng.nextDouble() >= mutationProbability) {
+        if (rng.nextDouble() <= mutationProbability) {
             return patch;
         }
         return mutateOnce(patch);
@@ -42,6 +42,7 @@ public final class SingleEditMutator {
 
     /** Always exactly one mutation step but try a different stratergy out of 3**/
     public Patch mutateOnce(Patch patch) {
+        System.out.println("Mutating patch: " + patch);
         EditOp op = singleOp(patch);
 
         // Try a few times to produce a valid mutant; otherwise fall back to originl.
@@ -52,8 +53,12 @@ public final class SingleEditMutator {
                 case 1 -> changeDonor(op);
                 default -> flipType(op);
             };
-            if (mutant != null) return mutant;
+            if (mutant != null) {
+                System.out.println("Produced mutant: " + mutant);
+                return mutant;
+            }
         }
+        System.out.println("Mutation failed after several attempts, returning original patch.");
         return patch;
     }
 
@@ -65,7 +70,7 @@ public final class SingleEditMutator {
         }
         if (op instanceof ReplaceOp) {
             StatementId donor = pickDonorForTarget(newTarget);
-            if (donor == null) return null;
+            if (donor == null || donor.equals(newTarget)) return null;
             return new Patch(List.of(new ReplaceOp(newTarget, donor)));
         }
         return null;

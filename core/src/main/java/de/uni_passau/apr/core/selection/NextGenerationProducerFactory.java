@@ -28,7 +28,7 @@ public final class NextGenerationProducerFactory {
 
         // Create NextGenerationProducer
         NextGenerationProducer<Individual> producer = new NextGenerationProducer<>(
-                40,
+                population.size(),
                 selector,            // selection strategy (tournament)
                 Individual::patch,
                 crossover,

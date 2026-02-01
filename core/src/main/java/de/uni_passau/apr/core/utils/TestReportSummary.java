@@ -1,5 +1,6 @@
 package de.uni_passau.apr.core.utils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class TestReportSummary {
@@ -8,7 +9,7 @@ public class TestReportSummary {
     private int failures;
     private int errors;
     private int skipped;
-    private List<String> failedTestIds;
+    private List<String> failedTestIds = new ArrayList<>();
 
     public TestReportSummary() {
     }
@@ -59,5 +60,16 @@ public class TestReportSummary {
 
     public void setFailedTestIds(List<String> failedTestIds) {
         this.failedTestIds = failedTestIds;
+    }
+
+    @Override
+    public String toString() {
+        return "TestReportSummary{" +
+                "testsRun=" + testsRun +
+                ", failures=" + failures +
+                ", errors=" + errors +
+                ", skipped=" + skipped +
+                ", failedTestIds=" + failedTestIds +
+                '}';
     }
 }

@@ -46,7 +46,10 @@ public final class PatchApplier {
                 Statement target = PatchUtils.findStatementById(cu, rep.target());
                 Statement donor = PatchUtils.findStatementById(cu, rep.donor());
 
-                if (!target.getClass().equals(donor.getClass())) continue;
+                if (!target.getClass().equals(donor.getClass())) {
+                    throw new IllegalArgumentException("Incompatible replace: " +
+                            target.getClass().getSimpleName() + " <- " + donor.getClass().getSimpleName());
+                }
 
                 Statement donorClone = donor.clone();
                 target.replace(donorClone);

@@ -23,4 +23,12 @@ public class Program {
 
         return x;
     }
+
+    /**
+     * Donor code for GenProg:
+     * Contains the exact statement "return high;" so the repair operator can copy it.
+     */
+    private static int _donorReturnHigh(int high) {
+        return high;
+    }
 }

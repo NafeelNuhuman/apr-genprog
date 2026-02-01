@@ -1,14 +1,12 @@
 package de.uni_passau.apr.core.workspace;
 
 import de.uni_passau.apr.core.benchmark.BenchmarkConfig;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
-import java.util.Comparator;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -17,152 +15,138 @@ class WorkspaceBuilderTest {
     @TempDir
     Path tempDir;
 
-    private Path createdWorkspace; // track to delete after each test
-
-    @AfterEach
-    void cleanup() throws IOException {
-        if (createdWorkspace != null && Files.exists(createdWorkspace)) {
-            deleteRecursively(createdWorkspace);
-        }
-    }
-
     @Test
-    void build_createsWorkspaceWithPomAndSources() throws IOException {
-        // Arrange: create a fake benchmark layout under tempDir
+    void build_createsWorkspaceWithPom_candidateAndCopiedTests() throws Exception {
+        // Arrange: create dummy benchmark files
         Path benchmarkRoot = tempDir.resolve("benchmarks");
-        Path bm1 = benchmarkRoot.resolve("bm1");
-        Path buggyDir = bm1.resolve("buggy");
-        Path testsDir = bm1.resolve("tests");
+        Files.createDirectories(benchmarkRoot);
 
-        Files.createDirectories(buggyDir);
-        Files.createDirectories(testsDir);
+        Path buggy = tempDir.resolve("Program.java");
+        Path tests = tempDir.resolve("ProgramTest.java");
 
-        Path buggyProgramPath = buggyDir.resolve("Program.java");
-        Path testSuitePath = testsDir.resolve("ProgramTest.java");
-
-        String originalBuggy = """
-                public class Program {
-                    public static int add(int a, int b) { return a + b; }
-                }
-                """;
-        String testSuite = """
-                import org.junit.jupiter.api.Test;
-                import static org.junit.jupiter.api.Assertions.*;
-
-                public class ProgramTest {
-                    @Test void adds() {
-                        assertEquals(3, Program.add(1,2));
-                    }
-                }
-                """;
-
-        Files.writeString(buggyProgramPath, originalBuggy, StandardCharsets.UTF_8);
-        Files.writeString(testSuitePath, testSuite, StandardCharsets.UTF_8);
+        Files.writeString(buggy, "public class Program {}", StandardCharsets.UTF_8);
+        Files.writeString(tests, "public class ProgramTest {}", StandardCharsets.UTF_8);
 
         BenchmarkConfig cfg = new BenchmarkConfig();
         cfg.setName("bm1");
-        cfg.setBuggyProgramPath(buggyProgramPath);
-        cfg.setTestSuitePath(testSuitePath);
+        cfg.setBenchmarkRoot(benchmarkRoot);
+        cfg.setBuggyProgramPath(buggy);
+        cfg.setTestSuitePath(tests);
 
-        String candidateVariant = """
-                public class Program {
-                    public static int add(int a, int b) { return a + b + 100; }
-                }
-                """;
+        String candidateVariant = "public class Program { public static int x = 1; }";
 
         WorkspaceBuilder builder = new WorkspaceBuilder();
 
         // Act
-        createdWorkspace = builder.build(cfg, candidateVariant);
+        Path workspace = builder.build(cfg, candidateVariant);
 
-        // Assert: workspace exists
-        assertNotNull(createdWorkspace);
-        assertTrue(Files.exists(createdWorkspace), "Workspace directory should exist");
-        assertTrue(Files.isDirectory(createdWorkspace), "Workspace path should be a directory");
+        // Assert: workspace folder exists
+        assertNotNull(workspace);
+        assertTrue(Files.exists(workspace));
+        assertTrue(Files.isDirectory(workspace));
+        assertTrue(workspace.getFileName().toString().startsWith("apr-bm1-"));
 
-        // Assert: pom.xml exists
-        Path pom = createdWorkspace.resolve("pom.xml");
-        assertTrue(Files.exists(pom), "pom.xml should exist");
-
+        // pom.xml exists + contains key markers
+        Path pom = workspace.resolve("pom.xml");
+        assertTrue(Files.exists(pom));
         String pomContent = Files.readString(pom, StandardCharsets.UTF_8);
-        assertTrue(pomContent.contains("<artifactId>junit-jupiter</artifactId>"), "pom.xml should include JUnit Jupiter");
-        assertTrue(pomContent.contains("<maven.compiler.release>17</maven.compiler.release>"),
-                "pom.xml should enforce Java 17 compilation");
+        assertTrue(pomContent.contains("<artifactId>workspace</artifactId>"));
+        assertTrue(pomContent.contains("maven-surefire-plugin"));
+        assertTrue(pomContent.contains("junit-jupiter"));
 
-        // Assert: candidate program written to src/main/java with the expected filename
-        Path writtenProgram = createdWorkspace.resolve("src/main/java/Program.java");
-        assertTrue(Files.exists(writtenProgram), "Candidate Program.java should be created in src/main/java");
-        String writtenProgramContent = Files.readString(writtenProgram, StandardCharsets.UTF_8);
-        assertEquals(candidateVariant, writtenProgramContent, "Candidate program content should match exactly");
+        // candidate variant written to src/main/java/<buggy filename>
+        Path mainJava = workspace.resolve("src/main/java").resolve(buggy.getFileName().toString());
+        assertTrue(Files.exists(mainJava));
+        assertEquals(candidateVariant, Files.readString(mainJava, StandardCharsets.UTF_8));
 
-        // Assert: test suite copied to src/test/java with same filename
-        Path copiedTest = createdWorkspace.resolve("src/test/java/ProgramTest.java");
-        assertTrue(Files.exists(copiedTest), "Test suite should be copied to src/test/java");
-        String copiedTestContent = Files.readString(copiedTest, StandardCharsets.UTF_8);
-        assertEquals(testSuite, copiedTestContent, "Copied test suite should match original test suite content");
+        // tests copied to src/test/java/<test filename>
+        Path copiedTest = workspace.resolve("src/test/java").resolve(tests.getFileName().toString());
+        assertTrue(Files.exists(copiedTest));
+        assertEquals(Files.readString(tests, StandardCharsets.UTF_8),
+                Files.readString(copiedTest, StandardCharsets.UTF_8));
     }
 
     @Test
-    void build_usesBenchmarkFileNamesForProgramAndTest() throws IOException {
-        // Arrange: different filenames (still valid for your Option A discovery)
-        Path buggyProgramPath = tempDir.resolve("SomeOtherName.java");
-        Path testSuitePath = tempDir.resolve("WeirdTestName.java");
-
-        Files.writeString(buggyProgramPath, "public class SomeOtherName {}", StandardCharsets.UTF_8);
-        Files.writeString(testSuitePath, "public class WeirdTestName {}", StandardCharsets.UTF_8);
-
-        BenchmarkConfig cfg = new BenchmarkConfig();
-        cfg.setName("bmX");
-        cfg.setBuggyProgramPath(buggyProgramPath);
-        cfg.setTestSuitePath(testSuitePath);
-
-        String candidateVariant = "public class SomeOtherName {}";
-
-        WorkspaceBuilder builder = new WorkspaceBuilder();
-
-        // Act
-        createdWorkspace = builder.build(cfg, candidateVariant);
-
-        // Assert: files should be created/copied using those filenames
-        assertTrue(Files.exists(createdWorkspace.resolve("src/main/java/SomeOtherName.java")));
-        assertTrue(Files.exists(createdWorkspace.resolve("src/test/java/WeirdTestName.java")));
-    }
-
-    @Test
-    void build_createsStandardMavenDirectories() throws IOException {
+    void build_replacesExistingTestFile() throws Exception {
         // Arrange
-        Path buggyProgramPath = tempDir.resolve("Program.java");
-        Path testSuitePath = tempDir.resolve("ProgramTest.java");
+        Path benchmarkRoot = tempDir.resolve("benchmarks");
+        Files.createDirectories(benchmarkRoot);
 
-        Files.writeString(buggyProgramPath, "public class Program {}", StandardCharsets.UTF_8);
-        Files.writeString(testSuitePath, "public class ProgramTest {}", StandardCharsets.UTF_8);
+        Path buggy = tempDir.resolve("Program.java");
+        Path tests = tempDir.resolve("ProgramTest.java");
+
+        Files.writeString(buggy, "public class Program {}", StandardCharsets.UTF_8);
+        Files.writeString(tests, "public class ProgramTest { /* original */ }", StandardCharsets.UTF_8);
 
         BenchmarkConfig cfg = new BenchmarkConfig();
-        cfg.setName("bmDirs");
-        cfg.setBuggyProgramPath(buggyProgramPath);
-        cfg.setTestSuitePath(testSuitePath);
+        cfg.setName("bm2");
+        cfg.setBenchmarkRoot(benchmarkRoot);
+        cfg.setBuggyProgramPath(buggy);
+        cfg.setTestSuitePath(tests);
+
+        WorkspaceBuilder builder = new WorkspaceBuilder();
+        Path workspace = builder.build(cfg, "public class Program {}");
+
+        Path copiedTest = workspace.resolve("src/test/java").resolve("ProgramTest.java");
+        assertTrue(Files.exists(copiedTest));
+
+        // Make existing content different to ensure replacement happens
+        Files.writeString(copiedTest, "public class ProgramTest { /* old workspace content */ }", StandardCharsets.UTF_8);
+        assertNotEquals(Files.readString(tests, StandardCharsets.UTF_8),
+                Files.readString(copiedTest, StandardCharsets.UTF_8));
+
+        // Act: run build again; should overwrite existing copied test
+        Path workspace2 = builder.build(cfg, "public class Program { public static int y = 2; }");
+
+        // Assert: second build is a new temp directory (fresh workspace)
+        assertNotEquals(workspace, workspace2);
+
+        Path copiedTest2 = workspace2.resolve("src/test/java").resolve("ProgramTest.java");
+        assertTrue(Files.exists(copiedTest2));
+        assertEquals(Files.readString(tests, StandardCharsets.UTF_8),
+                Files.readString(copiedTest2, StandardCharsets.UTF_8));
+    }
+
+    @Test
+    void build_throwsWhenTestSuitePathMissing() throws Exception {
+        Path benchmarkRoot = tempDir.resolve("benchmarks");
+        Files.createDirectories(benchmarkRoot);
+
+        Path buggy = tempDir.resolve("Program.java");
+        Files.writeString(buggy, "public class Program {}", StandardCharsets.UTF_8);
+
+        Path missingTests = tempDir.resolve("MissingTest.java");
+        assertFalse(Files.exists(missingTests));
+
+        BenchmarkConfig cfg = new BenchmarkConfig();
+        cfg.setName("bm3");
+        cfg.setBenchmarkRoot(benchmarkRoot);
+        cfg.setBuggyProgramPath(buggy);
+        cfg.setTestSuitePath(missingTests);
 
         WorkspaceBuilder builder = new WorkspaceBuilder();
 
-        // Act
-        createdWorkspace = builder.build(cfg, "public class Program {}");
-
-        // Assert
-        assertTrue(Files.isDirectory(createdWorkspace.resolve("src/main/java")), "src/main/java should exist");
-        assertTrue(Files.isDirectory(createdWorkspace.resolve("src/test/java")), "src/test/java should exist");
+        assertThrows(java.nio.file.NoSuchFileException.class,
+                () -> builder.build(cfg, "public class Program {}"));
     }
 
-    private static void deleteRecursively(Path root) throws IOException {
-        // delete files before directories
-        try (var walk = Files.walk(root)) {
-            walk.sorted(Comparator.reverseOrder())
-                    .forEach(path -> {
-                        try {
-                            Files.deleteIfExists(path);
-                        } catch (IOException e) {
-                            throw new RuntimeException("Failed to delete " + path, e);
-                        }
-                    });
-        }
+    @Test
+    void build_throwsWhenBuggyProgramPathIsNull() throws Exception {
+        Path benchmarkRoot = tempDir.resolve("benchmarks");
+        Files.createDirectories(benchmarkRoot);
+
+        Path tests = tempDir.resolve("ProgramTest.java");
+        Files.writeString(tests, "public class ProgramTest {}", StandardCharsets.UTF_8);
+
+        BenchmarkConfig cfg = new BenchmarkConfig();
+        cfg.setName("bm4");
+        cfg.setBenchmarkRoot(benchmarkRoot);
+        cfg.setBuggyProgramPath(null);
+        cfg.setTestSuitePath(tests);
+
+        WorkspaceBuilder builder = new WorkspaceBuilder();
+
+        assertThrows(NullPointerException.class,
+                () -> builder.build(cfg, "public class Program {}"));
     }
 }

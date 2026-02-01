@@ -54,6 +54,7 @@ public class MavenTestRunner implements TestRunner {
         if (workspaceDir == null || !Files.isDirectory(workspaceDir)) {
             throw new IllegalArgumentException("Workspace directory is null or does not exist: " + workspaceDir);
         }
+        System.out.println("Running Maven tests in workspace: " + workspaceDir);
         // set working directory to workspaceDir
         ProcessBuilder processBuilder = new ProcessBuilder();
         processBuilder.directory(workspaceDir.toFile());
@@ -102,6 +103,17 @@ public class MavenTestRunner implements TestRunner {
             } catch (java.io.IOException ioe) {
                 result.setOutput(result.getOutput() + "\n\nIOException during surefire report parsing: " + ioe.getMessage());
             }
+            if (summary.getTestsRun() == 0) {
+                // last 30 lines of output
+                String[] outputLines = result.getOutput().split(System.lineSeparator());
+                StringBuilder lastLines = new StringBuilder();
+                int start = Math.max(0, outputLines.length - 20);
+                for (int i = start; i < outputLines.length; i++) {
+                    lastLines.append(outputLines[i]).append(System.lineSeparator());
+                }
+                System.out.println("Warning: No tests were run. Last 30 lines of Maven output:\n" + lastLines.toString());
+            }
+            System.out.println("Test summary: " + summary);
             result.setTestsRun(summary.getTestsRun());
             result.setFailures(summary.getFailures());
             result.setErrors(summary.getErrors());

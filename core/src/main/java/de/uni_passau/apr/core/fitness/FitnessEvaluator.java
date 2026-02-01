@@ -22,6 +22,10 @@ public final class FitnessEvaluator {
         this.wNegT = wNegT;
     }
 
+    /** Default weights: WPosT=1.0, WNegT=10.0 */
+    public FitnessEvaluator() {
+        this(1.0, 10.0);
+    }
 
     /**
      * Fitness function:
@@ -44,8 +48,13 @@ public final class FitnessEvaluator {
         double score = (wPosT * passed) - (wNegT * bad);
 
         // Extra penalties for unstable ones
+        // timeout
         if (tr.isTimedOut()) score -= 1000.0;
-        if (tr.getExitCode() != 0) score -= 100.0;
+        // non-zero exit code and no tests run
+        if (tr.getExitCode()!= 0 && tr.getTestsRun() == 0) score -= 2000.0;
+        // compiled but no tests run
+        if (tr.getExitCode() == 0 && tr.getTestsRun() == 0) score -= 50.0;
+
 
         // Big bonus for perfect repair
         if (tr.isAllPassed() && !tr.isTimedOut() && tr.getExitCode() == 0) {

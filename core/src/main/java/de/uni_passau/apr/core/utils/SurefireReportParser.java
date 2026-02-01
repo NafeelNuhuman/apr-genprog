@@ -14,7 +14,6 @@ import java.util.List;
  * To read Maven Surefire XML test report files and summarize the results
  * (how many tests ran, failed, errored, or were skipped)
  * and list the IDs of failed tests.
- *
  */
 public class SurefireReportParser {
 
@@ -30,7 +29,7 @@ public class SurefireReportParser {
         if (!Files.exists(reportPath) || !Files.isDirectory(reportPath)) {
             return summary;
         }
-
+        System.out.println("Parsing surefire reports in directory: " + reportPath);
         LinkedHashSet<String> failTestsIds = new LinkedHashSet<>();
         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
         try {
@@ -51,10 +50,11 @@ public class SurefireReportParser {
         } catch (IOException e) {
             throw new IOException("Failed to list surefire report files in directory: " + reportPath, e);
         }
+        System.out.println("Found " + reportFiles.size() + " surefire report files.");
 
-        for (Path p : reportFiles) {
-            try {
-                var dBuilder = dbFactory.newDocumentBuilder();
+        try {
+            var dBuilder = dbFactory.newDocumentBuilder();
+            for (Path p : reportFiles) {
                 var doc = dBuilder.parse(p.toFile());
                 doc.getDocumentElement().normalize();
                 var testSuite = doc.getDocumentElement();
@@ -79,9 +79,11 @@ public class SurefireReportParser {
                         failTestsIds.add(testID);
                     }
                 }
-            } catch (Exception e) {
-                System.err.println("Faild to parse report file: " + p + ", error: " + e.getMessage());
             }
+        } catch (ParserConfigurationException e) {
+            throw new RuntimeException("Failed to create XML document builder for surefire report parsing", e);
+        } catch (Exception e) {
+            throw new IOException("Failed to parse surefire report files in directory: " + reportPath, e);
         }
 
         summary.setFailedTestIds(failTestsIds.stream().toList());
@@ -95,7 +97,6 @@ public class SurefireReportParser {
      * @param element       The XML element.
      * @param attributeName The name of the attribute to parse.
      * @return The int value of the attribute, or 0 if fails.
-     *
      */
     private static int getIntAttribute(Element element, String attributeName) {
         String attrValue = element.getAttribute(attributeName);

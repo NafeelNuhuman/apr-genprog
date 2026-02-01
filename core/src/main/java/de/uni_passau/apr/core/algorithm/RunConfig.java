@@ -1,6 +1,8 @@
 package de.uni_passau.apr.core.algorithm;
 
-public record RunConfig(int maxGenerations, int populationSize, int timeoutSeconds) {
+import java.util.Random;
+
+public record RunConfig(int maxGenerations, int populationSize, int timeoutSeconds, Random random) {
     public RunConfig {
         if (maxGenerations <= 0) {
             throw new IllegalArgumentException("maxGenerations must be > 0");
@@ -10,6 +12,9 @@ public record RunConfig(int maxGenerations, int populationSize, int timeoutSecon
         }
         if (timeoutSeconds <= 0) {
             throw new IllegalArgumentException("timeoutSeconds must be > 0");
+        }
+        if (random == null) {
+            throw new IllegalArgumentException("random cannot be null");
         }
     }
 }
