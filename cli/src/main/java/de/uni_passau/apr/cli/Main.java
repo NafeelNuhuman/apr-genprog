@@ -16,7 +16,7 @@ public class Main implements Runnable {
 
     @Override
     public void run() {
-        System.out.println("APR tool bootstrapped ✅");
+        System.out.println("APR tool bootstrapped successfully. Use --help to see available commands.");
     }
 
     public static void main(String[] args) {
