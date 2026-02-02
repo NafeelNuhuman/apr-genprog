@@ -66,10 +66,10 @@ public class TestReportSummary {
     public String toString() {
         return "TestReportSummary{" +
                 "\ntestsRun=" + testsRun +
-                "\n, failures=" + failures +
-                "\n, errors=" + errors +
-                "\n, skipped=" + skipped +
-                "\n, failedTestIds=" + failedTestIds +
+                ",\nfailures=" + failures +
+                ",\nerrors=" + errors +
+                ",\nskipped=" + skipped +
+                ",\nfailedTestIds=" + failedTestIds +
                 '}';
     }
 }
