@@ -54,7 +54,7 @@ public class MavenTestRunner implements TestRunner {
         if (workspaceDir == null || !Files.isDirectory(workspaceDir)) {
             throw new IllegalArgumentException("Workspace directory is null or does not exist: " + workspaceDir);
         }
-        System.out.println("Running Maven tests in workspace: " + workspaceDir);
+        System.out.println("\n\nRunning Maven tests in workspace: " + workspaceDir);
         // set working directory to workspaceDir
         ProcessBuilder processBuilder = new ProcessBuilder();
         processBuilder.directory(workspaceDir.toFile());
@@ -104,14 +104,14 @@ public class MavenTestRunner implements TestRunner {
                 result.setOutput(result.getOutput() + "\n\nIOException during surefire report parsing: " + ioe.getMessage());
             }
             if (summary.getTestsRun() == 0) {
-                // last 30 lines of output
+                // last 20 lines of output
                 String[] outputLines = result.getOutput().split(System.lineSeparator());
                 StringBuilder lastLines = new StringBuilder();
                 int start = Math.max(0, outputLines.length - 20);
                 for (int i = start; i < outputLines.length; i++) {
                     lastLines.append(outputLines[i]).append(System.lineSeparator());
                 }
-                System.out.println("Warning: No tests were run. Last 30 lines of Maven output:\n" + lastLines.toString());
+                System.out.println("Warning: No tests were run. Last 20 lines of Maven output:\n" + lastLines.toString());
             }
             System.out.println("Test summary: " + summary);
             result.setTestsRun(summary.getTestsRun());
@@ -120,6 +120,7 @@ public class MavenTestRunner implements TestRunner {
             result.setSkipped(summary.getSkipped());
             result.setFailedTests(summary.getFailedTestIds());
             result.setAllPassed(exitCode == 0 && summary.getFailures() == 0 && summary.getErrors() == 0);
+            System.out.println(" Test errors:\n" + result.getOutput());
         } catch (java.io.IOException ioe) {
             result.setExitCode(127);
             result.setOutput("IOException during test execution: " + ioe.getMessage());

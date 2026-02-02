@@ -9,6 +9,7 @@ import picocli.CommandLine.Command;
         description = "GenProg-style APR tool (course project).",
         subcommands = {
                 ValidateCommand.class,
+                TestCommand.class,
                 RunCommand.class
         }
 )
