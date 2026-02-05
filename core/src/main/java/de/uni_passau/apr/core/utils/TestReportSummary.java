@@ -65,11 +65,11 @@ public class TestReportSummary {
     @Override
     public String toString() {
         return "TestReportSummary{" +
-                "testsRun=" + testsRun +
-                ", failures=" + failures +
-                ", errors=" + errors +
-                ", skipped=" + skipped +
-                ", failedTestIds=" + failedTestIds +
+                "\ntestsRun=" + testsRun +
+                ",\nfailures=" + failures +
+                ",\nerrors=" + errors +
+                ",\nskipped=" + skipped +
+                ",\nfailedTestIds=" + failedTestIds +
                 '}';
     }
 }
