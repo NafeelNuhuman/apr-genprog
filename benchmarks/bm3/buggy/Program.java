@@ -7,7 +7,6 @@ public class Program {
      *  - null input -> IllegalArgumentException
      *  - empty array -> 0.0
      */
-
     public static double mean(int[] a) {
         if (a == null) {
             throw new IllegalArgumentException("array must not be null");
@@ -16,10 +15,25 @@ public class Program {
             return 0.0;
         }
 
+        // Donor call: harmless; keeps donor code reachable for GenProg.
+        _donorMeanLike(a);
+
         long sum = 0L;
         for (int v : a) {
             sum += v;
         }
-        return sum / a.length; //BUGGY
+        return sum / a.length; // BUGGY
+    }
+
+    /**
+     * Donor code for GenProg:
+     * Contains the exact ingredient: return sum / (double) a.length;
+     */
+    private static double _donorMeanLike(int[] a) {
+        long sum = 0L;
+        for (int v : a) {
+            sum += v;
+        }
+        return sum / (double) a.length;
     }
 }

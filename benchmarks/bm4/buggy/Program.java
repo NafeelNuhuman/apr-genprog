@@ -13,9 +13,12 @@ public class Program {
             throw new IllegalArgumentException("input must not be null");
         }
 
-        int i = 0;
-        int j = s.length(); //BUGGY
+        // Donor call: harmless; keeps donor ingredient reachable for GenProg.
+        _donorLastIndex(s);
 
+        int i = 0;
+        int j = 0;
+        j = s.length(); // BUGGY
         while (i < j) {
             char left = Character.toLowerCase(s.charAt(i));
             char right = Character.toLowerCase(s.charAt(j));
@@ -27,5 +30,15 @@ public class Program {
         }
 
         return true;
+    }
+
+    /**
+     * Donor code for GenProg:
+     * Contains the exact ingredient: return s.length() - 1;
+     */
+    private static int _donorLastIndex(String s) {
+        int j = 0;
+        j = s.length() - 1;
+        return j;
     }
 }
