@@ -21,7 +21,10 @@ public class Program {
     }
 
 
-    private static boolean _donorGreaterThan(int c, int max) {
+    private static boolean _donorGreaterThan() {
+        int c, max;
+        c = 1;
+        max = 0;
         return c > max;
     }
 

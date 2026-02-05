@@ -17,10 +17,12 @@ public class Program {
         return max;
     }
 
+
     private static boolean _donorGreaterThan() {
-        int c = 1;
-        int max = 0;
-        if (c > max)
-            return null;
+        int c, max;
+        c = 1;
+        max = 0;
+        return c > max;
     }
+
 }
