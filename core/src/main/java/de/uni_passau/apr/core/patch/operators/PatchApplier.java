@@ -61,20 +61,6 @@ public final class PatchApplier {
         return LexicalPreservingPrinter.print(cu);
     }
 
-    /**
-     * Applies a patch and writes the modified source to outputFile
-     * (creates parent dirs if needed).
-     */
-    public static void applyToFile(Path inputFile, Path outputFile, Patch patch) throws IOException {
-        Objects.requireNonNull(outputFile, "outputFile");
-        String modified = apply(inputFile, patch);
-
-        Path parent = outputFile.getParent();
-        if (parent != null) Files.createDirectories(parent);
-
-        Files.writeString(outputFile, modified, StandardCharsets.UTF_8);
-    }
-
     private static int targetBeginLine(EditOp op) {
         StatementId id = (op instanceof DeleteOp d) ? d.target() : ((ReplaceOp) op).target();
         return id.beginLine();

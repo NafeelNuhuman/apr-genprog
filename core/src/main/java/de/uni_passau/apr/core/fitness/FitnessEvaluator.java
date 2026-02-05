@@ -1,6 +1,5 @@
 package de.uni_passau.apr.core.fitness;
 
-import de.uni_passau.apr.core.evaluator.Evaluator;
 import de.uni_passau.apr.core.evaluator.EvaluationResult;
 import de.uni_passau.apr.core.testrunner.TestResult;
 
@@ -22,19 +21,10 @@ public final class FitnessEvaluator {
         this.wNegT = wNegT;
     }
 
-    /** Default weights: WPosT=1.0, WNegT=10.0 */
     public FitnessEvaluator() {
         this(1.0, 10.0);
     }
 
-    /**
-     * Fitness function:
-     *  1.Reward passed tests lightly (wPosT)
-     *  2.Penalize failing tests heavily (wNegT)
-     *  3.Penalize timeout
-     *  4.Give a large bonus if all tests pass (To set best ones apart)
-     * Higher fitness = better.
-     */
     public double computeFitness(EvaluationResult eval) {
         if (eval == null || eval.getTestResult() == null) return Double.NEGATIVE_INFINITY;
 

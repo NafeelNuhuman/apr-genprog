@@ -31,7 +31,7 @@ public final class SingleEditMutator {
         this.sameTypeDonorOnly = sameTypeDonorOnly;
     }
 
-    /** Apply mutation with probability p; otherwise return the original patch unchanged. */
+    // Apply mutation with probability p; otherwise return the original patch unchanged.
     public Patch maybeMutate(Patch patch) {
         Objects.requireNonNull(patch);
         if (rng.nextDouble() <= mutationProbability) {
@@ -40,7 +40,6 @@ public final class SingleEditMutator {
         return mutateOnce(patch);
     }
 
-    /** Always exactly one mutation step but try a different stratergy out of 3**/
     public Patch mutateOnce(Patch patch) {
         System.out.println("Mutating patch: " + patch);
         EditOp op = singleOp(patch);
@@ -103,11 +102,7 @@ public final class SingleEditMutator {
         return null;
     }
 
-    /**
-     * Picks a donor statement.
-     * If sameTypeDonorOnly=true,
-     * donor must be same Statement subclass as target.
-     */
+
     private StatementId pickDonorForTarget(StatementId target) {
         var all = collector.allStatementIds();
         if (all.isEmpty()) return null;

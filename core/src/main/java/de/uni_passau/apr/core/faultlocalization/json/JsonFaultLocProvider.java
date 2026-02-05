@@ -38,7 +38,7 @@ public class JsonFaultLocProvider implements FaultLocalizationProvider {
             }
 
             // weight is either 0.0, 0.1, or 1.0
-            // setting weight to exact values to avoid floating point issues later
+            // setting weight to exact values to avoid floating point issues
             boolean isValidWeight = false;
             if (Math.abs(weight - 0.0) <= EPSILON) {
                 location.setWeight(0.0);

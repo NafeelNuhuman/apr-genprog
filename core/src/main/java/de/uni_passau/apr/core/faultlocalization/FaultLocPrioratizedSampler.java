@@ -66,7 +66,6 @@ public final class FaultLocPrioratizedSampler {
 
     private StatementId mapLineToStatement(int line) {
         // 1 choose best statement that contains the line
-        // TODO (*if needed can make this more smarter)
         StatementId best = null;
         int bestSpan = Integer.MAX_VALUE;
 

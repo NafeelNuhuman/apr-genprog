@@ -14,7 +14,6 @@ public class Program {
         }
 
         // Harmless call: does not change behavior, but keeps extra statements reachable.
-        // (Optional, but often helps tools that only collect/weight covered statements.)
         _donorReturnHigh(high);
 
         if (x < low) {

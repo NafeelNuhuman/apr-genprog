@@ -60,7 +60,7 @@ public final class PopulationInitializer {
             }
         }
 
-        // In case uniqueness blocked too much, fill remaining without uniqueness
+        // In case uniqueness blocks too much, fill remaining without uniqueness
         while (pop.size() < populationSize) {
             pop.add(createRandomSingleEditPatch());
         }

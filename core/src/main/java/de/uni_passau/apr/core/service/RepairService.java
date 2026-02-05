@@ -52,10 +52,6 @@ public class RepairService {
         return new LoadedBenchmark(config, faultLocalization);
     }
 
-    public EvaluationResult evaluateCandidate(BenchmarkConfig config, String candidateSrc) {
-        return evaluator.evaluate(config, candidateSrc);
-    }
-
 }
 
 
