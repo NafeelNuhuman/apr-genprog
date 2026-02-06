@@ -76,7 +76,7 @@ public class RunCommand implements Callable<Integer> {
     @CommandLine.Option(
             names = { "-p", "--population-size" },
             description = "Population size for the GenProg algorithm.",
-            defaultValue = "4"
+            defaultValue = "10"
     )
     private int populationSize;
 
