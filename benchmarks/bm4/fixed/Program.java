@@ -39,6 +39,6 @@ public class Program {
     private static int _donorLastIndex(String s) {
         int j = 0;
         j = s.length() - 1;
-        return var;
+        return j;
     }
 }
