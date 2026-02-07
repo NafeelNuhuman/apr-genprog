@@ -104,14 +104,14 @@ public class MavenTestRunner implements TestRunner {
                 result.setOutput(result.getOutput() + "\n\nIOException during surefire report parsing: " + ioe.getMessage());
             }
             if (summary.getTestsRun() == 0) {
-                // last 20 lines of output
+                // last 10 lines of output
                 String[] outputLines = result.getOutput().split(System.lineSeparator());
                 StringBuilder lastLines = new StringBuilder();
-                int start = Math.max(0, outputLines.length - 20);
+                int start = Math.max(0, outputLines.length - 10);
                 for (int i = start; i < outputLines.length; i++) {
                     lastLines.append(outputLines[i]).append(System.lineSeparator());
                 }
-                System.out.println("Warning: No tests were run. Last 20 lines of Maven output:\n" + lastLines.toString());
+                System.out.println("Warning: No tests were run. Last 10 lines of Maven output:\n" + lastLines.toString());
             }
             System.out.println(summary);
             result.setTestsRun(summary.getTestsRun());
