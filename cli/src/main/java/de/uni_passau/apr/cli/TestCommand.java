@@ -32,44 +32,72 @@ public class TestCommand implements Callable<Integer> {
     )
     private String benchmarkName;
 
+    @CommandLine.Option(
+            names = { "-f", "--file" },
+            description = "Specify whether to test the buggy (b) or fixed (f) version of the benchmark. Defaults to running both if not specified.",
+            defaultValue = "all"
+    )
+    private String buggyOrFixedFile;
+
     @Override
-    public Integer call() {
-        if (benchmarkName == null || benchmarkName.isEmpty()) {
-            System.err.println("Benchmark name must be provided.");
-            return 1;
+        public Integer call() {
+            if (benchmarkName == null || benchmarkName.isEmpty()) {
+                System.err.println("Benchmark name must be provided.");
+                return 1;
+            }
+
+            System.out.printf("Testing benchmark '%s' in root directory '%s'%n", benchmarkName, benchmarkRoot);
+            try {
+                BenchmarkLoader loader = new BenchmarkLoader(java.nio.file.Path.of(benchmarkRoot));
+                BenchmarkConfig config = loader.load(benchmarkName);
+                WorkspaceBuilder workspaceBuilder = new WorkspaceBuilder();
+
+                String option = (buggyOrFixedFile == null) ? "all" : buggyOrFixedFile.trim().toLowerCase();
+
+                MavenTestRunner testRunner = new MavenTestRunner(Duration.ofSeconds(20));
+
+                if (option.equals("b") || option.equals("buggy")) {
+                    Path workspace = workspaceBuilder.build(config, config.getBuggyProgram());
+                    System.out.printf("Test workspace for buggy program created at: %s%n", workspace);
+
+                    System.out.println("Running tests on buggy program...");
+                    TestResult buggyResult = testRunner.runTests(workspace);
+                    System.out.printf("Buggy program test results: Tests run: %d, Failures: %d, Errors: %d, Skipped: %d%n",
+                            buggyResult.getTestsRun(), buggyResult.getFailures(), buggyResult.getErrors(), buggyResult.getSkipped());
+
+                } else if (option.equals("f") || option.equals("fixed")) {
+                    Path workspace = workspaceBuilder.build(config, config.getFixedProgram());
+                    System.out.printf("Test workspace for fixed program created at: %s%n", workspace);
+
+                    System.out.println("Running tests on fixed program...");
+                    TestResult fixedResult = testRunner.runTests(workspace);
+                    System.out.printf("Fixed program test results: Tests run: %d, Failures: %d, Errors: %d, Skipped: %d%n",
+                            fixedResult.getTestsRun(), fixedResult.getFailures(), fixedResult.getErrors(), fixedResult.getSkipped());
+
+                } else {
+                    Path buggyWorkspace = workspaceBuilder.build(config, config.getBuggyProgram());
+                    System.out.printf("Test workspace for buggy program created at: %s%n", buggyWorkspace);
+                    Path fixedWorkspace = workspaceBuilder.build(config, config.getFixedProgram());
+                    System.out.printf("Test workspace for fixed program created at: %s%n", fixedWorkspace);
+
+                    System.out.println("Running tests on buggy program...");
+                    TestResult buggyResult = testRunner.runTests(buggyWorkspace);
+                    System.out.printf("Buggy program test results: Tests run: %d, Failures: %d, Errors: %d, Skipped: %d%n",
+                            buggyResult.getTestsRun(), buggyResult.getFailures(), buggyResult.getErrors(), buggyResult.getSkipped());
+
+                    System.out.println("\n\nRunning tests on fixed program...");
+                    TestResult fixedResult = testRunner.runTests(fixedWorkspace);
+                    System.out.printf("Fixed program test results: Tests run: %d, Failures: %d, Errors: %d, Skipped: %d%n",
+                            fixedResult.getTestsRun(), fixedResult.getFailures(), fixedResult.getErrors(), fixedResult.getSkipped());
+                }
+
+            } catch (IOException e) {
+                System.err.printf("Failed to load benchmark '%s': %s%n", benchmarkName, e.getMessage());
+                return 1;
+            } catch (Exception e) {
+                System.err.printf("An error occurred while testing benchmark '%s': %s%n", benchmarkName, e.getMessage());
+                return 1;
+            }
+            return 0;
         }
-
-        System.out.printf("Testing benchmark '%s' in root directory '%s'%n", benchmarkName, benchmarkRoot);
-        try {
-            BenchmarkLoader loader = new BenchmarkLoader(java.nio.file.Path.of(benchmarkRoot));
-            BenchmarkConfig config = loader.load(benchmarkName);
-            WorkspaceBuilder workspaceBuilder = new WorkspaceBuilder();
-
-            Path buggyWorkspace = workspaceBuilder.build(config, config.getBuggyProgram());
-            System.out.printf("Test workspace for buggy program created at: %s%n", buggyWorkspace);
-            Path fixedWorkspace = workspaceBuilder.build(config, config.getFixedProgram());
-            System.out.printf("Test workspace for fixed program created at: %s%n", fixedWorkspace);
-
-            MavenTestRunner testRunner = new MavenTestRunner(Duration.ofSeconds(20));
-
-            System.out.println("Running tests on buggy program...");
-            TestResult buggyResult = testRunner.runTests(buggyWorkspace);
-            System.out.printf("Buggy program test results: Tests run: %d, Failures: %d, Errors: %d, Skipped: %d%n",
-                    buggyResult.getTestsRun(), buggyResult.getFailures(), buggyResult.getErrors(), buggyResult.getSkipped());
-
-
-            System.out.println("\n\nRunning tests on fixed program...");
-            TestResult fixedResult = testRunner.runTests(fixedWorkspace);
-            System.out.printf("Fixed program test results: Tests run: %d, Failures: %d, Errors: %d, Skipped: %d%n",
-                    fixedResult.getTestsRun(), fixedResult.getFailures(), fixedResult.getErrors(), fixedResult.getSkipped());
-
-        } catch (IOException e) {
-            System.err.printf("Failed to load benchmark '%s': %s%n", benchmarkName, e.getMessage());
-            return 1;
-        } catch (Exception e) {
-            System.err.printf("An error occurred while testing benchmark '%s': %s%n", benchmarkName, e.getMessage());
-            return 1;
-        }
-        return 0;
-    }
 }

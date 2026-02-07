@@ -54,7 +54,7 @@ public class MavenTestRunner implements TestRunner {
         if (workspaceDir == null || !Files.isDirectory(workspaceDir)) {
             throw new IllegalArgumentException("Workspace directory is null or does not exist: " + workspaceDir);
         }
-        System.out.println("\n\nRunning Maven tests in workspace: " + workspaceDir);
+        System.out.println("\nRunning Maven tests in workspace: " + workspaceDir);
         // set working directory to workspaceDir
         ProcessBuilder processBuilder = new ProcessBuilder();
         processBuilder.directory(workspaceDir.toFile());
@@ -113,7 +113,7 @@ public class MavenTestRunner implements TestRunner {
                 }
                 System.out.println("Warning: No tests were run. Last 20 lines of Maven output:\n" + lastLines.toString());
             }
-            System.out.println("Test summary: " + summary);
+            System.out.println(summary);
             result.setTestsRun(summary.getTestsRun());
             result.setFailures(summary.getFailures());
             result.setErrors(summary.getErrors());
