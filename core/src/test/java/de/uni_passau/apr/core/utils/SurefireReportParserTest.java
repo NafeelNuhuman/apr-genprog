@@ -140,7 +140,12 @@ class SurefireReportParserTest {
         assertEquals(1, summary.getErrors());
         assertEquals(0, summary.getSkipped());
 
-        assertEquals(List.of("A#t1", "B#t3"), summary.getFailedTestIds());
+        // summary get failed tests could return list in different order
+        List<String> failed = summary.getFailedTestIds();
+        assertNotNull(failed);
+        assertEquals(2, failed.size());
+        assertTrue(failed.contains("A#t1"));
+        assertTrue(failed.contains("B#t3"));
     }
 
     @Test
